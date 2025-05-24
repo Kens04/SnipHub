@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー
+model User {
+  id              Int @id @default(autoincrement())
+  supabaseUserId  String @unique
+  userName        String @db.VarChar(100)
+  iconUrl         String?
+  bio             String?
+  githubUrl       String?
+  instagramUrl    String?
+  threadsUrl      String?
+  xUrl            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  point           Point?
+  commentLikes    CommentLike[]
+  comments        Comment[]
+  likes           Like[]
+  favorites       Favorite[]
+  snippets        Snippet[]
+}
+
+// ポイント
+model Point {
+  id             Int @id @default(autoincrement())
+  userId         Int @unique
+  postCount      Int
+  likeCount      Int
+  favoriteCount  Int
+  totalPoint     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// コメントにいいね
+model CommentLike {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  commentId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User @relation(fields: [userId], references: [id])
+  comment    Comment @relation(fields: [commentId], references: [id])
+}
+
+// コメント
+model Comment {
+  id            Int @id @default(autoincrement())
+  userId        Int
+  snippetId     Int
+  content       String @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User @relation(fields: [userId], references: [id])
+  snippet       Snippet @relation(fields: [snippetId], references: [id])
+  commentLikes  CommentLike[]
+}
+
+// いいね
+model Like {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  snippetId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippet    Snippet @relation(fields: [snippetId], references: [id])
+}
+
+// お気に入り
+model Favorite {
+  id         Int @id @default(autoincrement())
+  userId     Int
+  snippetId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippet    Snippet @relation(fields: [snippetId], references: [id])
+}
+
+// スニペット
+model Snippet {
+  id           Int @id @default(autoincrement())
+  userId       Int
+  title        String
+  description  String
+  contentMd    String @db.Text
+  previewCode  String @db.Text
+  isPublic     Boolean
+  categoryId   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category @relation(fields: [categoryId], references: [id])
+  tags         SnippetTag[]
+  comments     Comment[]
+  likes        Like[]
+  favorites    Favorite[]
+}
+
+// カテゴリー
+model Category {
+  id         Int @id @default(autoincrement())
+  name       String @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  snippets   Snippet[]
+}
+
+// スニペットとタグの中間テーブル
+model SnippetTag {
+  id         Int @id @default(autoincrement())
+  snippetId  Int
+  tagId      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  snippet    Snippet @relation(fields: [snippetId], references: [id])
+  tag        Tag @relation(fields: [tagId], references: [id])
+}
+
+// タグ
+model Tag {
+  id           Int @id @default(autoincrement())
+  name         String @db.VarChar(100) @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  snippetTags  SnippetTag[]
+}
