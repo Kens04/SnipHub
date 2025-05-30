@@ -10,8 +10,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpForm } from "../_types/signUpForm";
 import { SignUpSchema } from "@/lib/SignUpSchema";
+import { v4 as uuidv4 } from "uuid";
+import { ChangeEvent, useEffect, useState } from "react";
 
 const SignUp: React.FC = () => {
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
+  // Imageタグのsrcにセットする画像URLを持たせるstate
+  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
+    null
+  );
+
   const {
     register,
     handleSubmit,
@@ -50,6 +58,52 @@ const SignUp: React.FC = () => {
 
   // const svg = avatar.toDataUri();
 
+  const handleImageChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    if (!event.target.files || event.target.files.length == 0) {
+      // 画像が選択されていないのでreturn
+      return;
+    }
+
+    const file = event.target.files[0]; // 選択された画像を取得
+    console.log("ファイル", file);
+
+    const filePath = `private/${uuidv4()}`; // ファイルパスを指定
+    console.log("ファイルパス", filePath);
+
+    // Supabaseに画像をアップロード
+    const { data, error } = await supabase.storage
+      .from("avatar") // ここでバケット名を指定
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    // アップロードに失敗したらエラーを表示して終了
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // data.pathに、画像固有のkeyが入っているので、thumbnailImageKeyに格納する
+    setThumbnailImageKey(data.path);
+  };
+
+  useEffect(() => {
+    if (!thumbnailImageKey) return; // アップロード時に取得した、thumbnailImageKeyを用いて画像のURLを取得
+
+    const fetcher = async () => {
+      const {
+        data: { publicUrl },
+      } = await supabase.storage.from("avatar").getPublicUrl(thumbnailImageKey);
+
+      setThumbnailImageUrl(publicUrl);
+    };
+
+    fetcher();
+  }, [thumbnailImageKey]);
+
   return (
     <div className="pt-[188px]">
       <h2 className="text-center text-color-text-black text-3xl font-bold">
@@ -62,12 +116,20 @@ const SignUp: React.FC = () => {
         >
           <div className="w-[100px] h-[100px] rounded-full m-auto">
             <Image src={avatar} width={100} height={100} alt="avatar" />
+            {thumbnailImageUrl && (
+              <Image
+                src={thumbnailImageUrl}
+                width={100}
+                height={100}
+                alt="avatar"
+              />
+            )}
           </div>
-          <div>
+          <div className="text-center mt-3">
             <input
               type="file"
               id="thumbnailImageKey"
-              // onChange={handleImageChange}
+              onChange={handleImageChange}
               accept="image/*"
             />
           </div>
@@ -103,7 +165,7 @@ const SignUp: React.FC = () => {
               type="email"
               id="email"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="name@company.com"
+              placeholder="メールアドレスを入力してください"
               required
               {...register("email")}
             />
@@ -122,7 +184,7 @@ const SignUp: React.FC = () => {
             <input
               type="password"
               id="password"
-              placeholder="••••••••"
+              placeholder="パスワードを入力してください"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               required
               {...register("password")}
@@ -142,7 +204,7 @@ const SignUp: React.FC = () => {
             <input
               type="password"
               id="passwordConfirm"
-              placeholder="••••••••"
+              placeholder="パスワード(確認)を入力してください"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               required
               {...register("passwordConfirm")}

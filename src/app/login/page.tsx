@@ -59,7 +59,7 @@ const Login: React.FC = () => {
               type="email"
               id="email"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              placeholder="test@test.com"
+              placeholder="メールアドレスを入力してください"
               required
               {...register("email")}
             />
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
             <input
               type="password"
               id="password"
-              placeholder="••••••••"
+              placeholder="パスワードを入力してください"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               required
               {...register("password")}
