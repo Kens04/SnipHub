@@ -1,8 +1,8 @@
 "use client";
 
 import { supabase } from "@/utils/supabase";
-// import { createAvatar } from "@dicebear/core";
-// import { identicon } from "@dicebear/collection";
+import { createAvatar } from "@dicebear/core";
+import { identicon } from "@dicebear/collection";
 import Image from "next/image";
 import avatar from "../public/images/avatar.png";
 import Link from "next/link";
@@ -11,54 +11,91 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpForm } from "../_types/signUpForm";
 import { SignUpSchema } from "@/lib/SignUpSchema";
 import { v4 as uuidv4 } from "uuid";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 const SignUp: React.FC = () => {
-  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
   // Imageタグのsrcにセットする画像URLを持たせるstate
-  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
-    null
-  );
+  const [iconUrl, setIconUrl] = useState<null | string>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    setValue,
+    formState: { errors, isSubmitting },
   } = useForm<SignUpForm>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
-      name: "",
+      iconUrl: "",
+      userName: "",
       email: "",
       password: "",
       passwordConfirm: "",
     },
   });
 
+  const noAvatar = createAvatar(identicon, {
+    seed: "Flizx",
+    radius: 50,
+    rowColor: ["00acc1", "1e88e5", "5e35b1"],
+  });
+
   const onSubmit = async (data: SignUpForm) => {
-    const { email, password } = data;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `http://localhost:3000/login`,
-      },
-    });
-    if (error) {
-      alert("登録に失敗しました");
-    } else {
-      alert("確認メールを送信しました。");
+    const { userName, email, password } = data;
+    let iconPath = iconUrl;
+    if (!iconPath) {
+      const svgString = noAvatar.toString();
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
+      const filePath = `private/${uuidv4()}.svg`;
+      // Supabase Storageにアップロード
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("avatar")
+        .upload(filePath, svgBlob, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/svg+xml",
+        });
+
+      if (uploadError) {
+        console.log(svgString, svgBlob, filePath);
+        alert("アイコンの自動生成に失敗しました");
+        return;
+      }
+      const { data: publicData } = supabase.storage
+        .from("avatar")
+        .getPublicUrl(uploadData.path);
+      iconPath = publicData.publicUrl;
+    }
+    try {
+      await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `http://localhost:3000/login`,
+        },
+      });
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          iconUrl: iconPath,
+          userName,
+        }),
+      });
+
+      if (res.ok) {
+        alert("確認メールを送信しました。");
+      }
+    } catch (error) {
+      if (error) {
+        alert("登録に失敗しました");
+      }
     }
   };
 
-  // const avatar = createAvatar(identicon, {
-  //   seed: "Flizx",
-  //   radius: 50,
-  //   rowColor: ["00acc1","1e88e5","5e35b1"]
-  // });
-
-  // const svg = avatar.toDataUri();
-
-  const handleImageChange = async (
+  const handleIconChange = async (
     event: ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     if (!event.target.files || event.target.files.length == 0) {
@@ -66,12 +103,9 @@ const SignUp: React.FC = () => {
       return;
     }
 
+    setIsLoading(true);
     const file = event.target.files[0]; // 選択された画像を取得
-    console.log("ファイル", file);
-
     const filePath = `private/${uuidv4()}`; // ファイルパスを指定
-    console.log("ファイルパス", filePath);
-
     // Supabaseに画像をアップロード
     const { data, error } = await supabase.storage
       .from("avatar") // ここでバケット名を指定
@@ -86,23 +120,20 @@ const SignUp: React.FC = () => {
       return;
     }
 
-    // data.pathに、画像固有のkeyが入っているので、thumbnailImageKeyに格納する
-    setThumbnailImageKey(data.path);
-  };
-
-  useEffect(() => {
-    if (!thumbnailImageKey) return; // アップロード時に取得した、thumbnailImageKeyを用いて画像のURLを取得
+    setValue("iconUrl", data.path);
 
     const fetcher = async () => {
       const {
         data: { publicUrl },
-      } = await supabase.storage.from("avatar").getPublicUrl(thumbnailImageKey);
+      } = await supabase.storage.from("avatar").getPublicUrl(data.path);
 
-      setThumbnailImageUrl(publicUrl);
+      setIconUrl(publicUrl);
     };
 
     fetcher();
-  }, [thumbnailImageKey]);
+
+    setIsLoading(false);
+  };
 
   return (
     <div className="pt-[188px]">
@@ -115,22 +146,27 @@ const SignUp: React.FC = () => {
           className="w-full max-w-[450px]"
         >
           <div className="w-[100px] h-[100px] rounded-full m-auto">
-            <Image src={avatar} width={100} height={100} alt="avatar" />
-            {thumbnailImageUrl && (
+            {iconUrl ? (
               <Image
-                src={thumbnailImageUrl}
+                className="w-[100px] h-[100px] rounded-full m-auto"
+                src={iconUrl}
                 width={100}
                 height={100}
                 alt="avatar"
               />
+            ) : (
+              <Image src={avatar} width={100} height={100} alt="avatar" />
             )}
           </div>
           <div className="text-center mt-3">
             <input
               type="file"
-              id="thumbnailImageKey"
-              onChange={handleImageChange}
+              id="iconUrl"
+              {...register("iconUrl", {
+                onChange: handleIconChange,
+              })}
               accept="image/*"
+              disabled={isLoading || isSubmitting}
             />
           </div>
           <div className="mt-4">
@@ -147,10 +183,10 @@ const SignUp: React.FC = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               placeholder="お名前を入力して下さい"
               required
-              {...register("name")}
+              {...register("userName")}
             />
-            {errors.name && (
-              <p className="text-color-danger">{errors.name.message}</p>
+            {errors.userName && (
+              <p className="text-color-danger">{errors.userName.message}</p>
             )}
           </div>
           <div className="mt-4">

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const SignUpSchema = z.object({
-  name: z.string().min(1, { message: "お名前を入力して下さい。" }),
+  userName: z.string().min(1, { message: "お名前を入力して下さい。" }),
   email: z
     .string()
     .email({ message: "適切なメールアドレスを入力して下さい。" }),
