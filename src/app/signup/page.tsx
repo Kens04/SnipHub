@@ -12,11 +12,15 @@ import { SignUpForm } from "../_types/signUpForm";
 import { SignUpSchema } from "@/lib/SignUpSchema";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEvent, useState } from "react";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 
 const SignUp: React.FC = () => {
   // Imageタグのsrcにセットする画像URLを持たせるstate
   const [iconUrl, setIconUrl] = useState<null | string>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState<boolean>(true);
+  const [passwordConfirm, setPasswordConfirm] = useState<boolean>(true);
 
   const {
     register,
@@ -178,11 +182,12 @@ const SignUp: React.FC = () => {
               <span className="text-color-danger inline-block ml-1">※</span>
             </label>
             <input
-              type="name"
+              type="text"
               id="name"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               placeholder="お名前を入力して下さい"
               required
+              disabled={isSubmitting}
               {...register("userName")}
             />
             {errors.userName && (
@@ -203,6 +208,7 @@ const SignUp: React.FC = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               placeholder="メールアドレスを入力してください"
               required
+              disabled={isSubmitting}
               {...register("email")}
             />
             {errors.email && (
@@ -217,14 +223,28 @@ const SignUp: React.FC = () => {
               パスワード
               <span className="text-color-danger inline-block ml-1">※</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              placeholder="パスワードを入力してください"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              required
-              {...register("password")}
-            />
+            <div className="relative">
+              <input
+                type={password ? "password" : "text"}
+                id="password"
+                placeholder="パスワードを入力してください"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+                disabled={isSubmitting}
+                {...register("password")}
+              />
+              {!password ? (
+                <FaEye
+                  onClick={() => setPassword(!password)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                />
+              ) : (
+                <FaEyeSlash
+                  onClick={() => setPassword(!password)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                />
+              )}
+            </div>
             {errors.password && (
               <p className="text-color-danger">{errors.password.message}</p>
             )}
@@ -237,14 +257,28 @@ const SignUp: React.FC = () => {
               パスワード(確認)
               <span className="text-color-danger inline-block ml-1">※</span>
             </label>
-            <input
-              type="password"
-              id="passwordConfirm"
-              placeholder="パスワード(確認)を入力してください"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              required
-              {...register("passwordConfirm")}
-            />
+            <div className="relative">
+              <input
+                type={passwordConfirm ? "password" : "text"}
+                id="passwordConfirm"
+                placeholder="パスワード(確認)を入力してください"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                required
+                disabled={isSubmitting}
+                {...register("passwordConfirm")}
+              />
+              {!passwordConfirm ? (
+                <FaEye
+                  onClick={() => setPasswordConfirm(!passwordConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                />
+              ) : (
+                <FaEyeSlash
+                  onClick={() => setPasswordConfirm(!passwordConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+                />
+              )}
+            </div>
             {errors.passwordConfirm && (
               <p className="text-color-danger">
                 {errors.passwordConfirm.message}
@@ -255,6 +289,7 @@ const SignUp: React.FC = () => {
             <button
               type="submit"
               className="w-full text-white bg-color-primary hover:bg-color-primary-hover font-bold rounded-lg text-sm px-5 py-2.5 text-center"
+              disabled={isSubmitting}
             >
               登録する
             </button>
