@@ -1,4 +1,4 @@
-export interface SignUpForm {
+export interface SignUpFormType {
   iconUrl?: string;
   userName: string;
   email: string;

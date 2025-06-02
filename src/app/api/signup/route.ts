@@ -6,9 +6,7 @@ const prisma = new PrismaClient();
 export const POST = async (request: NextRequest) => {
   try {
     const body = await request.json();
-
     const { supabaseUserId, iconUrl, userName } = body;
-
     const data = await prisma.user.create({
       data: {
         supabaseUserId,
