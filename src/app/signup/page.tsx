@@ -9,14 +9,14 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpForm } from "../_types/signUpForm";
-import { SignUpSchema } from "@/lib/SignUpSchema";
+import { SignUpSchema } from "@/app/signup/_lib/SignUpSchema";
 import { v4 as uuidv4 } from "uuid";
 import { ChangeEvent, useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 const SignUp: React.FC = () => {
-  // Imageタグのsrcにセットする画像URLを持たせるstate
   const [iconUrl, setIconUrl] = useState<null | string>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState<boolean>(true);
@@ -61,8 +61,7 @@ const SignUp: React.FC = () => {
         });
 
       if (uploadError) {
-        console.log(svgString, svgBlob, filePath);
-        alert("アイコンの自動生成に失敗しました");
+        toast.error("アイコンの自動生成に失敗しました");
         return;
       }
       const { data: publicData } = supabase.storage
@@ -71,30 +70,33 @@ const SignUp: React.FC = () => {
       iconPath = publicData.publicUrl;
     }
     try {
-      await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `http://localhost:3000/login`,
-        },
-      });
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          iconUrl: iconPath,
-          userName,
-        }),
-      });
-
-      if (res.ok) {
-        alert("確認メールを送信しました。");
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `http://localhost:3000/login`,
+          },
+        });
+      if (!signUpError && signUpData.user) {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            iconUrl: iconPath,
+            userName,
+            supabaseUserId: signUpData.user.id,
+          }),
+        });
+        if (res.ok) {
+          toast.success("確認メールを送信しました。");
+        }
       }
     } catch (error) {
       if (error) {
-        alert("登録に失敗しました");
+        toast.error("登録に失敗しました");
       }
     }
   };
@@ -141,6 +143,7 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="pt-[188px]">
+      <Toaster />
       <h2 className="text-center text-color-text-black text-3xl font-bold">
         新規登録
       </h2>
@@ -288,7 +291,11 @@ const SignUp: React.FC = () => {
           <div className="mt-8">
             <button
               type="submit"
-              className="w-full text-white bg-color-primary hover:bg-color-primary-hover font-bold rounded-lg text-sm px-5 py-2.5 text-center"
+              className={`${
+                isSubmitting
+                  ? "bg-gray-300 text-black pointer-events-none"
+                  : "bg-color-primary hover:bg-color-primary-hover text-white"
+              } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
               disabled={isSubmitting}
             >
               登録する
