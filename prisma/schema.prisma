@@ -17,7 +17,7 @@ datasource db {
 // ユーザー
 model User {
   id              Int @id @default(autoincrement())
-  supabaseUserId  String @unique
+  supabaseUserId  String? @unique
   userName        String @db.VarChar(100)
   iconUrl         String?
   bio             String?
