@@ -38,57 +38,85 @@ export const SignUpForm: React.FC = () => {
 
   const onSubmit = async (data: SignUpFormType) => {
     const { userName, email, password } = data;
-    let iconPath = iconUrl;
+    let iconPath = iconUrl ?? null;
+
+    console.log("📌 iconUrl BEFORE processing:", iconPath);
+
+    // 1. 自動生成 or アップロード済みチェック
+    let originalPath = "";
+    let finalStoragePath = "";
+
     if (!iconPath) {
       const svgString = getNoAvatar.toString();
       const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
-      const filePath = `private/${uuidv4()}.svg`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+
+      originalPath = `public/${uuidv4()}.svg`;
+      finalStoragePath = `private/${uuidv4()}.svg`;
+
+      const { error: uploadError } = await supabase.storage
         .from("avatar")
-        .upload(filePath, svgBlob, {
+        .upload(originalPath, svgBlob, {
           cacheControl: "3600",
           upsert: false,
           contentType: "image/svg+xml",
         });
 
       if (uploadError) {
-        toast.error("アイコンの自動生成に失敗しました");
+        console.error("❌ uploadError", uploadError);
+        toast.error("アイコンのアップロードに失敗しました");
         return;
       }
-      const { data: publicData } = supabase.storage
-        .from("avatar")
-        .getPublicUrl(uploadData.path);
-      iconPath = publicData.publicUrl;
+
+      console.log("✅ upload success:", originalPath);
+      iconPath = originalPath;
+    } else {
+      if (!iconPath?.startsWith("public/")) {
+        toast.error("iconUrl の形式が不正です (public/ から始まっていない)");
+        return;
+      }
+
+      originalPath = iconPath; // ← そのまま使う
+      const ext = originalPath.split(".").pop() || "png";
+      finalStoragePath = `private/${uuidv4()}.${ext}`;
+
+      console.log("🔄 originalPath:", originalPath);
+      console.log("📦 finalStoragePath:", finalStoragePath);
     }
-    try {
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `http://localhost:3000/login`,
-          },
-        });
-      if (!signUpError && signUpData.user) {
-        const res = await fetch("/api/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            iconUrl: iconPath,
-            userName,
-            supabaseUserId: signUpData.user.id,
-          }),
-        });
-        if (res.ok) {
-          toast.success("確認メールを送信しました。");
-        }
+
+    // 2. サインアップ
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
+        email,
+        password,
+        options: {
+          emailRedirectTo: "http://localhost:3000/login",
+        },
       }
-    } catch (error) {
-      if (error) {
-        toast.error("登録に失敗しました");
-      }
+    );
+
+    if (signUpError || !signUpData.user) {
+      console.error("❌ signUpError", signUpError);
+      toast.error("登録に失敗しました");
+      return;
+    }
+
+    // ② サーバーサイドにユーザー情報＋アイコンパスを送信
+    //    ※/api/signup 内で move + DB 保存を行う
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        iconUrl: iconPath, // 空文字ならデフォルト画像扱い
+        userName,
+        supabaseUserId: signUpData.user.id,
+      }),
+    });
+
+    if (res.ok) {
+      toast.success("確認メールを送信しました。");
+    } else {
+      console.error("❌ /api/signup error", await res.text());
+      toast.error("サーバー登録に失敗しました。");
     }
   };
 
@@ -100,7 +128,8 @@ export const SignUpForm: React.FC = () => {
     }
     setIsLoading(true);
     const file = event.target.files[0];
-    const filePath = `private/${uuidv4()}`;
+    const ext = file.name.split(".").pop();
+    const filePath = `public/${uuidv4()}.${ext}`;
     const { data, error } = await supabase.storage
       .from("avatar")
       .upload(filePath, file, {
@@ -108,17 +137,17 @@ export const SignUpForm: React.FC = () => {
         upsert: false,
       });
 
-    if (error) {
-      alert(error.message);
+    if (error || !data) {
+      console.error("❌ Upload error:", error);
+      alert("アップロードに失敗しました");
       setIsLoading(false);
       return;
     }
-    setValue("iconUrl", data.path);
 
-    const { data: publicData } = supabase.storage
-      .from("avatar")
-      .getPublicUrl(data.path);
-    setIconUrl(publicData.publicUrl);
+    console.log("📝 Uploaded file path:", data.path);
+    setValue("iconUrl", data.path); // ✅ path を form に保存
+    setIconUrl(data.path); // ✅ path を state に保存
+
     setIsLoading(false);
   };
 
@@ -127,7 +156,12 @@ export const SignUpForm: React.FC = () => {
       <div className="w-[100px] h-[100px] rounded-full m-auto cursor-pointer">
         <Image
           className="w-[100px] h-[100px] rounded-full m-auto"
-          src={iconUrl ? iconUrl : avatar}
+          src={
+            iconUrl
+              ? supabase.storage.from("avatar").getPublicUrl(iconUrl).data
+                  .publicUrl
+              : avatar
+          }
           width={100}
           height={100}
           alt="avatar"
