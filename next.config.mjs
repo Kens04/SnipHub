@@ -4,6 +4,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "fnwcubiimshyigxujqvz.supabase.co" },
     ],
+    dangerouslyAllowSVG: true,
   },
 };
 
