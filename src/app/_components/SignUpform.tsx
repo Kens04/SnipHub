@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import avatar from "../public/images/avatar.png";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export const SignUpForm: React.FC = () => {
   const [iconUrl, setIconUrl] = useState<null | string>(null);
@@ -38,117 +39,86 @@ export const SignUpForm: React.FC = () => {
 
   const onSubmit = async (data: SignUpFormType) => {
     const { userName, email, password } = data;
-    let iconPath = iconUrl ?? null;
+    let iconPath = iconUrl;
 
-    console.log("📌 iconUrl BEFORE processing:", iconPath);
-
-    // 1. 自動生成 or アップロード済みチェック
-    let originalPath = "";
-    let finalStoragePath = "";
-
+    // アイコン未設定時はデフォルトSVGを生成してアップロード
     if (!iconPath) {
       const svgString = getNoAvatar.toString();
       const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
-
-      originalPath = `public/${uuidv4()}.svg`;
-      finalStoragePath = `private/${uuidv4()}.svg`;
+      iconPath = `public/${uuidv4()}.svg`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatar")
-        .upload(originalPath, svgBlob, {
+        .upload(iconPath, svgBlob, {
           cacheControl: "3600",
           upsert: false,
           contentType: "image/svg+xml",
         });
 
       if (uploadError) {
-        console.error("❌ uploadError", uploadError);
         toast.error("アイコンのアップロードに失敗しました");
         return;
       }
-
-      console.log("✅ upload success:", originalPath);
-      iconPath = originalPath;
-    } else {
-      if (!iconPath?.startsWith("public/")) {
-        toast.error("iconUrl の形式が不正です (public/ から始まっていない)");
-        return;
-      }
-
-      originalPath = iconPath; // ← そのまま使う
-      const ext = originalPath.split(".").pop() || "png";
-      finalStoragePath = `private/${uuidv4()}.${ext}`;
-
-      console.log("🔄 originalPath:", originalPath);
-      console.log("📦 finalStoragePath:", finalStoragePath);
     }
 
-    // 2. サインアップ
+    // サインアップ実行
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
       {
         email,
         password,
-        options: {
-          emailRedirectTo: "http://localhost:3000/login",
-        },
+        options: { emailRedirectTo: "http://localhost:3000/login" },
       }
     );
-
     if (signUpError || !signUpData.user) {
-      console.error("❌ signUpError", signUpError);
       toast.error("登録に失敗しました");
       return;
     }
 
-    // ② サーバーサイドにユーザー情報＋アイコンパスを送信
-    //    ※/api/signup 内で move + DB 保存を行う
+    // サーバーにユーザー情報＋アイコンパスを送信
     const res = await fetch("/api/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        iconUrl: iconPath, // 空文字ならデフォルト画像扱い
-        userName,
         supabaseUserId: signUpData.user.id,
+        userName,
+        iconUrl: iconPath,
       }),
     });
 
     if (res.ok) {
       toast.success("確認メールを送信しました。");
     } else {
-      console.error("❌ /api/signup error", await res.text());
-      toast.error("サーバー登録に失敗しました。");
+      toast.error("すでに新規登録済みです");
     }
   };
 
   const handleIconChange = async (
     event: ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
-    if (!event.target.files || event.target.files.length == 0) {
-      return;
-    }
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     setIsLoading(true);
-    const file = event.target.files[0];
-    const ext = file.name.split(".").pop();
-    const filePath = `public/${uuidv4()}.${ext}`;
-    const { data, error } = await supabase.storage
-      .from("avatar")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+    try {
+      const ext = file.name.split(".").pop();
+      const filePath = `public/${uuidv4()}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from("avatar")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-    if (error || !data) {
-      console.error("❌ Upload error:", error);
-      alert("アップロードに失敗しました");
+      if (error || !data) throw error;
+
+      setValue("iconUrl", data.path);
+      setIconUrl(data.path);
+    } catch (err) {
+      toast.error("アップロードに失敗しました");
+      console.log(err);
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    console.log("📝 Uploaded file path:", data.path);
-    setValue("iconUrl", data.path); // ✅ path を form に保存
-    setIconUrl(data.path); // ✅ path を state に保存
-
-    setIsLoading(false);
   };
 
   return (
@@ -297,7 +267,14 @@ export const SignUpForm: React.FC = () => {
           } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
           disabled={isSubmitting}
         >
-          登録する
+          {isSubmitting ? (
+            <span className="flex justify-center items-center">
+              <span className="mr-2">登録中...</span>
+              <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
+            </span>
+          ) : (
+            "登録する"
+          )}
         </button>
       </div>
     </form>
