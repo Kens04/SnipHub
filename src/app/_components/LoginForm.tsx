@@ -8,10 +8,12 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginSchema } from "../login/_lib/loginSchema";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(true);
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -34,8 +36,8 @@ export const LoginForm: React.FC = () => {
     if (error) {
       toast.error("ログインに失敗しました");
     } else {
-      // router.replace("/admin/posts");
       toast.success("ログインに成功しました。");
+      router.push("/dashboard");
     }
   };
 
@@ -106,7 +108,14 @@ export const LoginForm: React.FC = () => {
           } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
           disabled={isSubmitting}
         >
-          ログイン
+          {isSubmitting ? (
+            <span className="flex justify-center items-center">
+              <span className="mr-2">ログイン中...</span>
+              <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
+            </span>
+          ) : (
+            "ログイン"
+          )}
         </button>
       </div>
     </form>
