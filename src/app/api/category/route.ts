@@ -33,9 +33,18 @@ export const GET = async () => {
       select: {
         id: true,
         name: true,
-      },
-      orderBy: {
-        createdAt: "desc",
+        snippets: {
+          select: {
+            categoryId: true,
+            title: true,
+            description: true,
+            likes: {
+              select: {
+                snippetId: true,
+              },
+            },
+          },
+        },
       },
     });
 
