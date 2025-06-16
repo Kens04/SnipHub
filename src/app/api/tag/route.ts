@@ -33,6 +33,48 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        snippetTags: {
+          select: {
+            snippet: {
+              select: {
+                id: true,
+                userId: true,
+                title: true,
+                description: true,
+                user: {
+                  select: {
+                    id: true,
+                    userName: true,
+                    iconUrl: true,
+                  },
+                },
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                tags: {
+                  select: {
+                    tag: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
+                    },
+                  },
+                },
+                likes: {
+                  select: {
+                    id: true,
+                    userId: true,
+                    snippetId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
