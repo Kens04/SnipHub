@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
       previewCode,
       isPublic,
       categoryId,
+      tagIds,
     } = body;
 
     const data = await prisma.snippet.create({
@@ -33,6 +34,15 @@ export async function POST(req: NextRequest) {
             id: categoryId,
           },
         },
+        tags: {
+          create: tagIds.map((tagId: number) => ({
+            tag: {
+              connect: {
+                id: tagId,
+              },
+            },
+          })),
+        },
       },
     });
 
@@ -47,3 +57,45 @@ export async function POST(req: NextRequest) {
     }
   }
 }
+
+export const GET = async () => {
+  try {
+    const snippet = await prisma.snippet.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+            iconUrl: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        likes: {
+          select: {
+            snippetId: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ status: "OK", snippet }, { status: 200 });
+  } catch (error) {
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
+  }
+};
