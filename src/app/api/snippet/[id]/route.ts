@@ -108,17 +108,17 @@ export const PUT = async (
 ) => {
   const { id } = params;
 
-  const {
-    title,
-    description,
-    contentMd,
-    previewCode,
-    isPublic,
-    categoryId,
-    tagIds,
-  } = await request.json();
-
   try {
+    const body = await request.json();
+    const {
+      title,
+      description,
+      contentMd,
+      previewCode,
+      isPublic,
+      categoryId,
+      tagIds,
+    } = body;
     const snippet = await prisma.snippet.update({
       where: {
         id: parseInt(id),
@@ -129,13 +129,35 @@ export const PUT = async (
         contentMd,
         previewCode,
         isPublic,
+        categoryId,
+        tags: {
+          deleteMany: {},
+          create: tagIds.map((tagId: number) => ({
+            tag: {
+              connect: {
+                id: tagId,
+              },
+            },
+          })),
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+          },
+        },
         category: {
-          connect: {
-            id: categoryId,
+          select: {
+            id: true,
+            name: true,
           },
         },
         tags: {
-          connect: tagIds.map((id: number) => ({ id })),
+          include: {
+            tag: true,
+          },
         },
       },
     });

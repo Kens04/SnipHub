@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: "OK",
-      message: "作成しました",
+      message: "スニペットを作成しました",
       id: data.id,
     });
   } catch (error) {
