@@ -5,28 +5,26 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const point = await prisma.point.findMany({
-      select: {
-        id: true,
+    const points = await prisma.point.findMany({
+      take: 10,
+      orderBy: [{ totalPoint: "desc" }, { updatedAt: "desc" }],
+      include: {
         user: {
-          include: {
-            snippets: {
-              select: {
-                isPublic: true,
-                _count: {
-                  select: {
-                    likes: true,
-                    favorites: true,
-                  },
-                },
-              },
-            },
+          select: {
+            id: true,
+            userName: true,
+            iconUrl: true,
           },
         },
       },
     });
 
-    return NextResponse.json({ status: "OK", point }, { status: 200 });
+    const ranking = points.map((point, index) => ({
+      ...point,
+      rank: index + 1,
+    }));
+
+    return NextResponse.json({ status: "OK", ranking }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ status: error.message }, { status: 400 });
