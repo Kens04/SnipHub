@@ -8,28 +8,55 @@ export async function POST(req: NextRequest) {
 
     const { userId, snippetId } = body;
 
-    const data = await prisma.like.create({
-      select: {
-        id: true,
-      },
-      data: {
-        user: {
-          connect: {
-            id: userId,
+    const result = await prisma.$transaction(async (tx) => {
+      const like = await tx.like.create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          snippet: {
+            connect: {
+              id: snippetId,
+            },
           },
         },
-        snippet: {
-          connect: {
-            id: snippetId,
+        include: {
+          snippet: {
+            select: {
+              userId: true,
+            },
           },
         },
-      },
+      });
+
+      await tx.point.upsert({
+        where: {
+          userId: like.snippet.userId,
+        },
+        update: {
+          likeCount: {
+            increment: 1,
+          },
+          totalPoint: {
+            increment: 1,
+          },
+        },
+        create: {
+          userId: like.snippet.userId,
+          postCount: 0,
+          likeCount: 1,
+          favoriteCount: 0,
+          totalPoint: 1,
+        },
+      });
     });
 
     return NextResponse.json({
       status: "OK",
-      message: "作成しました",
-      id: data.id,
+      message: "いいね！しました",
+      id: result,
     });
   } catch (error) {
     if (error instanceof Error) {

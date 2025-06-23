@@ -7,16 +7,43 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
-  const { id } = params;
-
   try {
-    const like = await prisma.like.delete({
-      where: {
-        id: parseInt(id),
-      },
+    const body = await request.json();
+    const { id } = params;
+    const { userId } = body;
+    const result = await prisma.$transaction(async (tx) => {
+      const like = await tx.like.delete({
+        where: {
+          id: parseInt(id),
+          userId,
+        },
+        include: {
+          snippet: {
+            select: {
+              userId,
+            },
+          },
+        },
+      });
+
+      await tx.point.update({
+        where: {
+          userId: like.snippet.userId,
+        },
+        data: {
+          likeCount: {
+            decrement: 1,
+          },
+          totalPoint: {
+            decrement: 1,
+          },
+        },
+      });
+
+      return like;
     });
 
-    return NextResponse.json({ status: "OK", like }, { status: 200 });
+    return NextResponse.json({ status: "OK", result }, { status: 200 });
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
