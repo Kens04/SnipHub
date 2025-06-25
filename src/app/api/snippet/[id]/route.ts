@@ -3,6 +3,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface UpdateSnippetRequestBody {
+  title: string;
+  description: string;
+  contentMd: string;
+  previewCode: string;
+  isPublic: boolean;
+  categoryId: number;
+  tagIds: number[];
+}
+
 export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -89,7 +99,7 @@ export const DELETE = async (
   const { id } = params;
 
   try {
-    const snippet = await prisma.snippet.findUnique({
+    const snippet = await prisma.snippet.delete({
       where: {
         id: parseInt(id),
       },
@@ -118,7 +128,7 @@ export const PUT = async (
       isPublic,
       categoryId,
       tagIds,
-    } = body;
+    }: UpdateSnippetRequestBody = body;
     const snippet = await prisma.snippet.update({
       where: {
         id: parseInt(id),
