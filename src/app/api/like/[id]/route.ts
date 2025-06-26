@@ -11,39 +11,44 @@ export const DELETE = async (
     const body = await request.json();
     const { id } = params;
     const { userId } = body;
+
     const result = await prisma.$transaction(async (tx) => {
       const like = await tx.like.delete({
         where: {
           id: parseInt(id),
-          userId,
         },
         include: {
           snippet: {
             select: {
-              userId,
+              userId: true,
             },
           },
         },
       });
 
-      await tx.point.update({
-        where: {
-          userId: like.snippet.userId,
-        },
-        data: {
-          likeCount: {
-            decrement: 1,
+      if (like.snippet.userId !== userId) {
+        await tx.point.update({
+          where: {
+            userId: like.snippet.userId,
           },
-          totalPoint: {
-            decrement: 1,
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+            totalPoint: {
+              decrement: 1,
+            },
           },
-        },
-      });
+        });
+      }
 
       return like;
     });
 
-    return NextResponse.json({ status: "OK", result }, { status: 200 });
+    return NextResponse.json(
+      { status: "OK", message: "いいねを削除しました", result },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
