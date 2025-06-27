@@ -15,35 +15,39 @@ export const DELETE = async (
       const favorite = await tx.favorite.delete({
         where: {
           id: parseInt(id),
-          userId,
         },
         include: {
           snippet: {
             select: {
-              userId,
+              userId: true,
             },
           },
         },
       });
 
-      await tx.point.update({
-        where: {
-          userId: favorite.snippet.userId,
-        },
-        data: {
-          favoriteCount: {
-            increment: 1,
+      if (favorite.snippet.userId !== userId) {
+        await tx.point.update({
+          where: {
+            userId: favorite.snippet.userId,
           },
-          totalPoint: {
-            increment: 2,
+          data: {
+            favoriteCount: {
+              decrement: 1,
+            },
+            totalPoint: {
+              decrement: 2,
+            },
           },
-        },
-      });
+        });
+      }
 
       return favorite;
     });
 
-    return NextResponse.json({ status: "OK", result }, { status: 200 });
+    return NextResponse.json(
+      { status: "OK", message: "お気に入りを削除しました", result },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
