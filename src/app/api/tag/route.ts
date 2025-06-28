@@ -2,11 +2,17 @@ import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+
+interface CreateTagRequestBody {
+  id: number;
+  name: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { id, name } = body;
+    const { id, name }: CreateTagRequestBody = body;
 
     const data = await prisma.tag.create({
       data: {
@@ -17,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: "OK",
-      message: "作成しました",
+      message: "タグを作成しました",
       id: data.id,
     });
   } catch (error) {

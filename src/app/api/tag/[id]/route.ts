@@ -3,32 +3,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const DELETE = async (
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) => {
-  const { id } = params;
-
-  try {
-    const tag = await prisma.tag.findUnique({
-      where: {
-        id: parseInt(id),
-      },
-    });
-
-    return NextResponse.json({ status: "OK", tag }, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error)
-      return NextResponse.json({ status: error.message }, { status: 400 });
-  }
-};
+interface UpdateTagRequestBody {
+  name: string;
+}
 
 export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
   const { id } = params;
-  const { name } = await request.json();
+  const { name }: UpdateTagRequestBody = await request.json();
 
   try {
     const tag = await prisma.tag.update({
@@ -40,7 +24,10 @@ export const PUT = async (
       },
     });
 
-    return NextResponse.json({ status: "OK", tag }, { status: 200 });
+    return NextResponse.json(
+      { status: "OK", message: "タグを更新しました", tag },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
