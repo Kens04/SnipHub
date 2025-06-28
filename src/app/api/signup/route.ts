@@ -5,6 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
+interface CreateUserRequestBody {
+  supabaseUserId: string;
+  iconUrl: string;
+  userName: string;
+}
+
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -12,7 +18,8 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { supabaseUserId, iconUrl, userName } = await req.json();
+    const { supabaseUserId, iconUrl, userName }: CreateUserRequestBody =
+      await req.json();
     let path = iconUrl;
 
     if (path.startsWith("public/")) {
