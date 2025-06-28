@@ -99,13 +99,78 @@ export const DELETE = async (
   const { id } = params;
 
   try {
-    const snippet = await prisma.snippet.delete({
-      where: {
-        id: parseInt(id),
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.commentLike.deleteMany({
+        where: {
+          comment: {
+            snippetId: parseInt(id),
+          },
+        },
+      });
+
+      await tx.comment.deleteMany({
+        where: {
+          snippetId: parseInt(id),
+        },
+      });
+
+      await tx.like.deleteMany({
+        where: {
+          snippetId: parseInt(id),
+        },
+      });
+
+      await tx.snippetTag.deleteMany({
+        where: {
+          snippetId: parseInt(id),
+        },
+      });
+
+      await tx.favorite.deleteMany({
+        where: {
+          snippetId: parseInt(id),
+        },
+      });
+
+      const snippet = await tx.snippet.delete({
+        where: {
+          id: parseInt(id),
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+            },
+          },
+          tags: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (snippet.isPublic) {
+        await tx.point.update({
+          where: {
+            userId: snippet.userId,
+          },
+          data: {
+            postCount: {
+              decrement: 1,
+            },
+            totalPoint: {
+              decrement: 3,
+            },
+          },
+        });
+      }
     });
 
-    return NextResponse.json({ status: "OK", snippet }, { status: 200 });
+    return NextResponse.json(
+      { status: "OK", message: "スニペットを削除しました", result },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
@@ -172,7 +237,10 @@ export const PUT = async (
       },
     });
 
-    return NextResponse.json({ status: "OK", snippet }, { status: 200 });
+    return NextResponse.json(
+      { status: "OK", message: "スニペットを更新しました", snippet },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });
