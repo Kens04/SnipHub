@@ -74,30 +74,3 @@ export async function POST(req: NextRequest) {
     }
   }
 }
-
-export async function GET() {
-  try {
-    const like = await prisma.like.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            userName: true,
-            iconUrl: true,
-          },
-        },
-        snippet: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ status: "OK", like }, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
-    }
-  }
-}
