@@ -66,7 +66,7 @@ export const SignUpForm: React.FC = () => {
       {
         email,
         password,
-        options: { emailRedirectTo: "http://localhost:3000/login" },
+        options: { emailRedirectTo: "/dashboard" },
       }
     );
     if (signUpError || !signUpData.user) {
