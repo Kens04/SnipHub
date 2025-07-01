@@ -30,7 +30,6 @@ export const getCurrentUser = async (request: NextRequest) => {
     throw new Error("認証に失敗しました");
   }
 
-  // 3) Profle を参照（管理者チェックする場合はここで is_admin を確認）
   const user = await prisma.user.findUnique({
     where: { supabaseUserId: data.user.id },
   });
@@ -38,7 +37,7 @@ export const getCurrentUser = async (request: NextRequest) => {
     throw new Error("ユーザー情報が見つかりません");
   }
 
-  return user; // user.isAdmin などがあればこのあと判定
+  return user;
 };
 
 export async function GET(
