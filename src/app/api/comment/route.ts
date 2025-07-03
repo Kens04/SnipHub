@@ -1,33 +1,31 @@
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "../_utils/getCurrentUser";
 
 const prisma = new PrismaClient();
 
 interface CreateCommentRequestBody {
   content: string;
-  userId: number;
   snippetId: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await getCurrentUser(req);
+
+    if (error || !user) {
+      return NextResponse.json({ status: error.message }, { status: 400 });
+    }
+
     const body = await req.json();
 
-    const { userId, snippetId, content }: CreateCommentRequestBody = body;
+    const { snippetId, content }: CreateCommentRequestBody = body;
 
     const data = await prisma.comment.create({
       data: {
         content,
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        snippet: {
-          connect: {
-            id: snippetId,
-          },
-        },
+        userId: user.id,
+        snippetId,
       },
     });
 
@@ -45,7 +43,7 @@ export async function POST(req: NextRequest) {
 
 export const GET = async () => {
   try {
-    const comment = await prisma.comment.findMany({
+    const comments = await prisma.comment.findMany({
       include: {
         user: {
           select: {
@@ -65,7 +63,7 @@ export const GET = async () => {
       },
     });
 
-    return NextResponse.json({ status: "OK", comment }, { status: 200 });
+    return NextResponse.json({ status: "OK", comments }, { status: 200 });
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });

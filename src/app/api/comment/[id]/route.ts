@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getCurrentUser } from "../../_utils/getCurrentUser";
 
 const prisma = new PrismaClient();
 
@@ -8,7 +9,27 @@ export const DELETE = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json({ status: error.message }, { status: 400 });
+    }
+
     const { id } = params;
+
+    const exsistingComment = await prisma.comment.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+    });
+
+    if (!exsistingComment) {
+      return NextResponse.json(
+        { message: "コメントがありません。" },
+        { status: 404 }
+      );
+    }
 
     const comment = await prisma.comment.delete({
       where: {
@@ -31,9 +52,29 @@ export const PUT = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json({ status: error.message }, { status: 400 });
+    }
+
     const body = await request.json();
     const { content } = body;
     const { id } = params;
+
+    const existingComment = await prisma.comment.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+    });
+
+    if (!existingComment) {
+      return NextResponse.json(
+        { message: "コメントがありません。" },
+        { status: 404 }
+      );
+    }
 
     const comment = await prisma.comment.update({
       where: {
