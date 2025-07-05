@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/app/api/_utils/getCurrentUser";
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,7 +48,6 @@ export const GET = async (
     if (!userData) {
       return NextResponse.json(
         {
-          status: "NOT_FOUND",
           message: "ユーザーが見つかりません",
         },
         { status: 404 }
@@ -108,7 +108,37 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const { user, error } = await getCurrentUser(request);
+
+  if (error || !user) {
+    return NextResponse.json(
+      { status: error?.message || "認証が必要です" },
+      { status: 401 }
+    );
+  }
+
   const { id } = params;
+
+  const userId = parseInt(id);
+  if (user.id !== userId) {
+    return NextResponse.json({
+      message: "他のユーザーのプロフィールは更新できません",
+      status: 403,
+    });
+  }
+
+  const existingProfile = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!existingProfile) {
+    return NextResponse.json({
+      message: "ユーザーが見つかりません",
+      status: 404,
+    });
+  }
 
   try {
     const body = await request.json();
@@ -121,9 +151,27 @@ export const PUT = async (
       threadsUrl,
       xUrl,
     }: UpdateUserProfileRequestBody = body;
+
+    // ユーザー名の重複チェック
+    const duplicateUser = await prisma.user.findFirst({
+      where: {
+        userName: userName,
+        NOT: {
+          id: userId,
+        },
+      },
+    });
+
+    if (duplicateUser) {
+      return NextResponse.json(
+        { message: "そのユーザー名は既に使用されています" },
+        { status: 400 }
+      );
+    }
+
     const profile = await prisma.user.update({
       where: {
-        id: parseInt(id),
+        id: userId,
       },
       data: {
         iconUrl,

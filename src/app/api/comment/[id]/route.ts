@@ -10,19 +10,22 @@ export const DELETE = async (
     const { user, error } = await getCurrentUser(request);
 
     if (error || !user) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
     }
 
     const { id } = params;
 
-    const exsistingComment = await prisma.comment.findUnique({
+    const existingComment = await prisma.comment.findUnique({
       where: {
         id: parseInt(id),
         userId: user.id,
       },
     });
 
-    if (!exsistingComment) {
+    if (!existingComment) {
       return NextResponse.json(
         { message: "コメントがありません。" },
         { status: 404 }
@@ -53,7 +56,10 @@ export const PUT = async (
     const { user, error } = await getCurrentUser(request);
 
     if (error || !user) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();

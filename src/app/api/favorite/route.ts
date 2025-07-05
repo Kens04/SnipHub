@@ -1,31 +1,58 @@
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { getCurrentUser } from "../_utils/getCurrentUser";
+import { prisma } from "@/utils/prisma";
 
 interface CreateFavoriteRequestBody {
   snippetId: number;
-  userId: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await getCurrentUser(req);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
-    const { snippetId, userId }: CreateFavoriteRequestBody = body;
+    const { snippetId }: CreateFavoriteRequestBody = body;
+
+    // スニペットの存在確認
+    const snippet = await prisma.snippet.findUnique({
+      where: { id: snippetId },
+    });
+
+    if (!snippet) {
+      return NextResponse.json(
+        { status: "スニペットが見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    const existingFavorite = await prisma.favorite.findUnique({
+      where: {
+        userId_snippetId: {
+          userId: user.id,
+          snippetId: snippetId,
+        },
+      },
+    });
+
+    if (existingFavorite) {
+      return NextResponse.json(
+        { message: "既にお気に入りしています" },
+        { status: 400 }
+      );
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const favorite = await tx.favorite.create({
         data: {
-          user: {
-            connect: {
-              id: userId,
-            },
-          },
-          snippet: {
-            connect: {
-              id: snippetId,
-            },
-          },
+          userId: user.id,
+          snippetId: snippetId,
         },
         include: {
           snippet: {
@@ -36,7 +63,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (favorite.snippet.userId !== userId) {
+      if (favorite.snippet.userId !== user.id) {
         await tx.point.update({
           where: {
             userId: favorite.snippet.userId,
@@ -68,7 +95,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const favorite = await prisma.favorite.findMany({
+    const favorites = await prisma.favorite.findMany({
       include: {
         user: {
           select: {
@@ -92,7 +119,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ status: "OK", favorite }, { status: 200 });
+    return NextResponse.json({ status: "OK", favorites }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ status: error.message }, { status: 400 });

@@ -1,18 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getCurrentUser } from "../../_utils/getCurrentUser";
+import { prisma } from "@/utils/prisma";
 
 export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const { id } = params;
 
+    // いいねがあるかチェック
+    const existingLike = await prisma.commentLike.findUnique({
+      where: {
+        userId_commentId: {
+          userId: user.id,
+          commentId: parseInt(id),
+        },
+      },
+    });
+
+    // いいねがない場合はエラー
+    if (!existingLike) {
+      return NextResponse.json(
+        { message: "いいねしていません。" },
+        { status: 404 }
+      );
+    }
+
+    // いいねの削除
     const commentLike = await prisma.commentLike.delete({
       where: {
-        id: parseInt(id),
+        userId_commentId: {
+          userId: user.id,
+          commentId: parseInt(id),
+        },
       },
     });
 

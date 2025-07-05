@@ -12,12 +12,28 @@ export async function POST(req: NextRequest) {
     const { user, error } = await getCurrentUser(req);
 
     if (error || !user) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
 
     const { snippetId, content }: CreateCommentRequestBody = body;
+
+    const snippet = await prisma.snippet.findUnique({
+      where: {
+        id: snippetId,
+      },
+    });
+
+    if (!snippet) {
+      return NextResponse.json({
+        message: "スニペットが見つかりません",
+        status: 404,
+      });
+    }
 
     const data = await prisma.comment.create({
       data: {

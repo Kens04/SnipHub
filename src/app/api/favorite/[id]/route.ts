@@ -1,34 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getCurrentUser } from "../../_utils/getCurrentUser";
+import { prisma } from "@/utils/prisma";
 
 export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
   try {
-    const body = await request.json();
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const { id } = params;
-    const { userId } = body;
+
+    const existingFavorite = await prisma.favorite.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+      include: {
+        snippet: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingFavorite) {
+      return NextResponse.json(
+        { message: "お気に入りが見つかりません。" },
+        { status: 404 }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       const favorite = await tx.favorite.delete({
         where: {
           id: parseInt(id),
         },
-        include: {
-          snippet: {
-            select: {
-              userId: true,
-            },
-          },
-        },
       });
 
-      if (favorite.snippet.userId !== userId) {
+      if (existingFavorite.snippet.userId !== user.id) {
         await tx.point.update({
           where: {
-            userId: favorite.snippet.userId,
+            userId: existingFavorite.snippet.userId,
           },
           data: {
             favoriteCount: {

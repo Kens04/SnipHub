@@ -1,30 +1,60 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "../_utils/getCurrentUser";
 
 interface CreateLikeRequestBody {
   snippetId: number;
-  userId: number;
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await getCurrentUser(req);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
-    const { userId, snippetId }: CreateLikeRequestBody = body;
+    const { snippetId }: CreateLikeRequestBody = body;
+
+    const snippet = await prisma.snippet.findUnique({
+      where: {
+        id: snippetId,
+      },
+    });
+
+    if (!snippet) {
+      return NextResponse.json({
+        message: "スニペットが見つかりません",
+        status: 404,
+      });
+    }
+
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_snippetId: {
+          userId: user.id,
+          snippetId: snippetId,
+        },
+      },
+    });
+
+    if (!existingLike) {
+      return NextResponse.json({
+        message: "既にいいねしています",
+        status: 400,
+      });
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const like = await tx.like.create({
         data: {
-          user: {
-            connect: {
-              id: userId,
-            },
-          },
-          snippet: {
-            connect: {
-              id: snippetId,
-            },
-          },
+          userId: user.id,
+          snippetId: snippetId,
         },
         include: {
           snippet: {
@@ -35,7 +65,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (like.snippet.userId !== userId) {
+      if (like.snippet.userId !== user.id) {
         await tx.point.upsert({
           where: {
             userId: like.snippet.userId,
