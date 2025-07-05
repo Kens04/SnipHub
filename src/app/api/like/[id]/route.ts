@@ -1,35 +1,55 @@
+import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getCurrentUser } from "../../_utils/getCurrentUser";
 
 export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
   try {
-    const body = await request.json();
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const { id } = params;
-    const { userId } = body;
+
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+      include: {
+        snippet: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingLike) {
+      return NextResponse.json(
+        { message: "いいねがありません。" },
+        { status: 404 }
+      );
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const like = await tx.like.delete({
         where: {
           id: parseInt(id),
         },
-        include: {
-          snippet: {
-            select: {
-              userId: true,
-            },
-          },
-        },
       });
 
-      if (like.snippet.userId !== userId) {
+      if (existingLike.snippet.userId !== user.id) {
         await tx.point.update({
           where: {
-            userId: like.snippet.userId,
+            userId: existingLike.snippet.userId,
           },
           data: {
             likeCount: {
