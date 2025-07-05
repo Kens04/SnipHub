@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { getCurrentUser } from "../../_utils/getCurrentUser";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/utils/prisma";
 
 export const DELETE = async (
   request: NextRequest,

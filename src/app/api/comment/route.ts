@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../_utils/getCurrentUser";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/utils/prisma";
 
 interface CreateCommentRequestBody {
   content: string;
