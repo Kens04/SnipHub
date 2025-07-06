@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!existingLike) {
+    if (existingLike) {
       return NextResponse.json({
         message: "既にいいねしています",
         status: 400,
