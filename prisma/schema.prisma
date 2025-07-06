@@ -143,6 +143,8 @@ model SnippetTag {
   updatedAt  DateTime @updatedAt
   snippet    Snippet @relation(fields: [snippetId], references: [id])
   tag        Tag @relation(fields: [tagId], references: [id])
+
+  @@unique([snippetId, tagId])
 }
 
 // タグ
