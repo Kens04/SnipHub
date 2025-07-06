@@ -17,6 +17,15 @@ export const GET = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const userData = await prisma.user.findUnique({
       where: { id: parseInt(params.id) },
       select: {
@@ -151,23 +160,6 @@ export const PUT = async (
       threadsUrl,
       xUrl,
     }: UpdateUserProfileRequestBody = body;
-
-    // ユーザー名の重複チェック
-    const duplicateUser = await prisma.user.findFirst({
-      where: {
-        userName: userName,
-        NOT: {
-          id: userId,
-        },
-      },
-    });
-
-    if (duplicateUser) {
-      return NextResponse.json(
-        { message: "そのユーザー名は既に使用されています" },
-        { status: 400 }
-      );
-    }
 
     const profile = await prisma.user.update({
       where: {

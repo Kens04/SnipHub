@@ -1,20 +1,41 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "../_utils/getCurrentUser";
 
 interface CreateTagRequestBody {
-  id: number;
   name: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await getCurrentUser(req);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
-    const { id, name }: CreateTagRequestBody = body;
+    const { name }: CreateTagRequestBody = body;
+
+    const existingTag = await prisma.tag.findUnique({
+      where: {
+        name: name,
+      },
+    });
+
+    if (existingTag) {
+      return NextResponse.json({
+        message: "既に同じ名前のタグがあります。",
+        status: 400,
+      });
+    }
 
     const data = await prisma.tag.create({
       data: {
-        id,
         name,
       },
     });
@@ -31,15 +52,24 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const tag = await prisma.tag.findMany({
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const tags = await prisma.tag.findMany({
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json({ status: "OK", tag }, { status: 200 });
+    return NextResponse.json({ status: "OK", tags }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ status: error.message }, { status: 400 });

@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/app/api/_utils/getCurrentUser";
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -6,8 +7,39 @@ export const GET = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = params;
+
+    if (user.id !== parseInt(id)) {
+      return NextResponse.json({
+        message: "他のユーザーのお気に入りは閲覧できません",
+        status: 403,
+      });
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json({
+        message: "ユーザーが見つかりません",
+        status: 404,
+      });
+    }
+
     const favoriteSnippets = await prisma.user.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       select: {
         id: true,
         userName: true,

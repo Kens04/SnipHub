@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "../../_utils/getCurrentUser";
 
 interface UpdateSnippetRequestBody {
   title: string;
@@ -15,9 +16,17 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
-  const { id } = params;
-
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = params;
     const snippet = await prisma.snippet.findUnique({
       where: {
         id: parseInt(id),
@@ -94,9 +103,32 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
-  const { id } = params;
-
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = params;
+
+    const existingSnippet = await prisma.snippet.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+    });
+
+    if (!existingSnippet) {
+      return NextResponse.json(
+        { message: "スニペットがありません。" },
+        { status: 404 }
+      );
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       await tx.commentLike.deleteMany({
         where: {
@@ -179,10 +211,34 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
-  const { id } = params;
-
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = params;
+
+    const existingSnippet = await prisma.snippet.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+    });
+
+    if (!existingSnippet) {
+      return NextResponse.json(
+        { message: "スニペットが見つかりません" },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json();
+
     const {
       title,
       description,

@@ -55,8 +55,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export const GET = async () => {
+export const GET = async (request: NextRequest) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const comments = await prisma.comment.findMany({
       include: {
         user: {

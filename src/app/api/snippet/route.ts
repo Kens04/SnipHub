@@ -1,8 +1,8 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "../_utils/getCurrentUser";
 
 interface CreateSnippetRequestBody {
-  userId: number;
   title: string;
   description: string;
   contentMd: string;
@@ -14,10 +14,18 @@ interface CreateSnippetRequestBody {
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await getCurrentUser(req);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
     const {
-      userId,
       title,
       description,
       contentMd,
@@ -35,16 +43,8 @@ export async function POST(req: NextRequest) {
           contentMd,
           previewCode,
           isPublic,
-          user: {
-            connect: {
-              id: userId,
-            },
-          },
-          category: {
-            connect: {
-              id: categoryId,
-            },
-          },
+          userId: user.id,
+          categoryId,
           tags: {
             create: tagIds.map((tagId: number) => ({
               tag: {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       if (isPublic) {
         await tx.point.upsert({
           where: {
-            userId: userId,
+            userId: user.id,
           },
           update: {
             postCount: {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
             },
           },
           create: {
-            userId: userId,
+            userId: user.id,
             postCount: 1,
             likeCount: 0,
             favoriteCount: 0,
@@ -95,8 +95,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export const GET = async () => {
+export const GET = async (request: NextRequest) => {
   try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
     const snippet = await prisma.snippet.findMany({
       include: {
         user: {
