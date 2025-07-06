@@ -32,6 +32,14 @@ export const DELETE = async (
       );
     }
 
+    await prisma.commentLike.deleteMany({
+      where: {
+        comment: {
+          snippetId: parseInt(id),
+        },
+      },
+    });
+
     const comment = await prisma.comment.delete({
       where: {
         id: parseInt(id),
