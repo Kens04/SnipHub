@@ -11,7 +11,7 @@ export const DELETE = async (
 
     if (error || !user) {
       return NextResponse.json(
-        { status: error?.message || "認証が必要です" },
+        { status: error?.message || "認証が必要です。" },
         { status: 401 }
       );
     }
