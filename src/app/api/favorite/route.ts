@@ -92,37 +92,3 @@ export async function POST(req: NextRequest) {
     }
   }
 }
-
-export async function GET() {
-  try {
-    const favorites = await prisma.favorite.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            userName: true,
-            iconUrl: true,
-          },
-        },
-        snippet: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ status: "OK", favorites }, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
-    }
-  }
-}
