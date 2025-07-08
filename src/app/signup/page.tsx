@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Toaster } from "react-hot-toast";
-import { SignUpForm } from "../_components/SignUpform";
+import { SignUpForm } from "./_components/SignUpform";
 
 const SignUp: React.FC = () => {
   return (
