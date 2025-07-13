@@ -11,9 +11,11 @@ import { loginSchema } from "../_lib/loginSchema";
 import { Input } from "@/app/_components/Input";
 import SubmitButton from "@/app/_components/SubmitButton";
 import { Label } from "@/app/_components/Label";
+import { useRouter } from "next/navigation";
 
 export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -37,7 +39,7 @@ export const LoginForm: React.FC = () => {
       toast.error("ログインに失敗しました");
     } else {
       toast.success("ログインに成功しました。");
-      window.location.href = "/dashboard";
+      router.replace("/dashboard");
     }
   };
 
