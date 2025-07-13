@@ -17,7 +17,7 @@ const SubmitButton = ({
       type="submit"
       className={`${
         isSubmitting
-          ? "bg-gray-300 text-black pointer-events-none"
+          ? "bg-gray-300 text-text-black pointer-events-none"
           : "bg-color-primary hover:bg-color-primary-hover text-white"
       } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
       disabled={isSubmitting}
