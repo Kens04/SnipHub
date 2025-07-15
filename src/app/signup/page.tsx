@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Toaster } from "react-hot-toast";
-import { SignUpForm } from "../_components/SignUpform";
+import { SignUpForm } from "./_components/SignUpform";
 
 const SignUp: React.FC = () => {
   return (
-    <div className="pt-[188px]">
+    <div className="pt-[100px] md:pt-[188px] px-4">
       <Toaster />
-      <h2 className="text-center text-color-text-black text-3xl font-bold">
+      <h2 className="text-center text-color-text-black text-2xl md:text-3xl font-bold">
         新規登録
       </h2>
       <div className="flex justify-center mt-10">

@@ -2,17 +2,19 @@
 
 import { supabase } from "@/utils/supabase";
 import { useForm } from "react-hook-form";
-import { LoginFormType } from "../_types/loginForm";
+import { LoginFormType } from "../../_types/loginForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { loginSchema } from "../login/_lib/loginSchema";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { loginSchema } from "../_lib/loginSchema";
+import { Input } from "@/app/_components/Input";
+import SubmitButton from "@/app/_components/SubmitButton";
+import { Label } from "@/app/_components/Label";
 import { useRouter } from "next/navigation";
 
 export const LoginForm: React.FC = () => {
-  const [showPassword, setShowPassword] = useState<boolean>(true);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const router = useRouter();
   const {
     register,
@@ -37,24 +39,17 @@ export const LoginForm: React.FC = () => {
       toast.error("ログインに失敗しました");
     } else {
       toast.success("ログインに成功しました。");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[450px]">
       <div>
-        <label
-          htmlFor="email"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          メールアドレス
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
-        <input
+        <Label htmlFor="email">メールアドレス</Label>
+        <Input
           type="email"
           id="email"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           placeholder="メールアドレスを入力してください"
           required
           disabled={isSubmitting}
@@ -65,32 +60,33 @@ export const LoginForm: React.FC = () => {
         )}
       </div>
       <div className="mt-4">
-        <label
-          htmlFor="password"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          パスワード
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
+        <Label htmlFor="password">パスワード</Label>
         <div className="relative">
-          <input
-            type={showPassword ? "password" : "text"}
+          <Input
+            type={showPassword ? "text" : "password"}
             id="password"
             placeholder="パスワードを入力してください"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             required
             disabled={isSubmitting}
             {...register("password")}
           />
-          {!showPassword ? (
+          {showPassword ? (
             <FaEye
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           ) : (
             <FaEyeSlash
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           )}
         </div>
@@ -99,24 +95,12 @@ export const LoginForm: React.FC = () => {
         )}
       </div>
       <div className="mt-8">
-        <button
-          type="submit"
-          className={`${
-            isSubmitting
-              ? "bg-gray-300 text-black pointer-events-none"
-              : "bg-color-primary hover:bg-color-primary-hover text-white"
-          } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
-          disabled={isSubmitting}
+        <SubmitButton
+          isSubmitting={isSubmitting}
+          isSubmittingText="ログイン中..."
         >
-          {isSubmitting ? (
-            <span className="flex justify-center items-center">
-              <span className="mr-2">ログイン中...</span>
-              <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
-            </span>
-          ) : (
-            "ログイン"
-          )}
-        </button>
+          ログイン
+        </SubmitButton>
       </div>
     </form>
   );

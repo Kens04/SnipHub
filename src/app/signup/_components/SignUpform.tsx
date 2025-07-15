@@ -1,24 +1,27 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
-import { SignUpFormType } from "../_types/signUpForm";
+import { SignUpFormType } from "../../_types/signUpForm";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignUpSchema } from "../signup/_lib/SignUpSchema";
-import { getNoAvatar } from "../signup/_utils/uploadAvatar";
+import { SignUpSchema } from "../_lib/SignUpSchema";
+import { getNoAvatar } from "../_utils/uploadAvatar";
 import { supabase } from "@/utils/supabase";
 import { v4 as uuidv4 } from "uuid";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import avatar from "../public/images/avatar.png";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import avatar from "../../public/images/avatar.png";
+import { Input } from "@/app/_components/Input";
+import SubmitButton from "@/app/_components/SubmitButton";
+import { Label } from "@/app/_components/Label";
 
 export const SignUpForm: React.FC = () => {
   const [iconUrl, setIconUrl] = useState<null | string>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState<boolean>(true);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState<boolean>(true);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] =
+    useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -123,9 +126,13 @@ export const SignUpForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[450px]">
-      <div className="w-[100px] h-[100px] rounded-full m-auto cursor-pointer">
+      <div
+        className={`w-[70px] h-[70px] md:w-[100px] md:h-[100px] rounded-full m-auto ${
+          isSubmitting ? "cursor-auto pointer-events-none" : "cursor-pointer"
+        }`}
+      >
         <Image
-          className="w-[100px] h-[100px] rounded-full m-auto"
+          className="w-[70px] h-[70px] md:w-[100px] md:h-[100px] rounded-full m-auto"
           src={
             iconUrl
               ? supabase.storage.from("avatar").getPublicUrl(iconUrl).data
@@ -148,17 +155,10 @@ export const SignUpForm: React.FC = () => {
         />
       </div>
       <div className="mt-4">
-        <label
-          htmlFor="name"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          お名前
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
-        <input
+        <Label htmlFor="name">お名前</Label>
+        <Input
           type="text"
           id="name"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           placeholder="お名前を入力して下さい"
           required
           disabled={isSubmitting}
@@ -169,17 +169,10 @@ export const SignUpForm: React.FC = () => {
         )}
       </div>
       <div className="mt-4">
-        <label
-          htmlFor="email"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          メールアドレス
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
-        <input
+        <Label htmlFor="email">メールアドレス</Label>
+        <Input
           type="email"
           id="email"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           placeholder="メールアドレスを入力してください"
           required
           disabled={isSubmitting}
@@ -190,32 +183,33 @@ export const SignUpForm: React.FC = () => {
         )}
       </div>
       <div className="mt-4">
-        <label
-          htmlFor="password"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          パスワード
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
+        <Label htmlFor="password">パスワード</Label>
         <div className="relative">
-          <input
-            type={showPassword ? "password" : "text"}
+          <Input
+            type={showPassword ? "text" : "password"}
             id="password"
             placeholder="パスワードを入力してください"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             required
             disabled={isSubmitting}
             {...register("password")}
           />
-          {!showPassword ? (
+          {showPassword ? (
             <FaEye
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           ) : (
             <FaEyeSlash
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           )}
         </div>
@@ -224,32 +218,33 @@ export const SignUpForm: React.FC = () => {
         )}
       </div>
       <div className="mt-4">
-        <label
-          htmlFor="passwordConfirm"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          パスワード(確認)
-          <span className="text-color-danger inline-block ml-1">※</span>
-        </label>
+        <Label htmlFor="passwordConfirm">パスワード(確認)</Label>
         <div className="relative">
-          <input
-            type={showPasswordConfirm ? "password" : "text"}
+          <Input
+            type={showPasswordConfirm ? "text" : "password"}
             id="passwordConfirm"
             placeholder="パスワード(確認)を入力してください"
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             required
             disabled={isSubmitting}
             {...register("passwordConfirm")}
           />
-          {!showPasswordConfirm ? (
+          {showPasswordConfirm ? (
             <FaEye
               onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           ) : (
             <FaEyeSlash
               onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
+              className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 ${
+                isSubmitting
+                  ? "cursor-auto pointer-events-none"
+                  : "cursor-pointer"
+              }`}
             />
           )}
         </div>
@@ -258,24 +253,9 @@ export const SignUpForm: React.FC = () => {
         )}
       </div>
       <div className="mt-8">
-        <button
-          type="submit"
-          className={`${
-            isSubmitting
-              ? "bg-gray-300 text-black pointer-events-none"
-              : "bg-color-primary hover:bg-color-primary-hover text-white"
-          } w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center`}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <span className="flex justify-center items-center">
-              <span className="mr-2">登録中...</span>
-              <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
-            </span>
-          ) : (
-            "登録する"
-          )}
-        </button>
+        <SubmitButton isSubmitting={isSubmitting} isSubmittingText="登録中...">
+          登録する
+        </SubmitButton>
       </div>
     </form>
   );
