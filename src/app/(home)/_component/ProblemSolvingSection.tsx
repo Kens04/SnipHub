@@ -3,7 +3,7 @@ import icon2 from "../../public/images/icon2.png";
 import icon3 from "../../public/images/icon3.png";
 import { ProblemSolvingCard } from "./ProblemSolvingCard";
 
-export const ProblemSolvingSection = () => {
+export const ProblemSolvingSection: React.FC = () => {
   return (
     <div className="mt-14 md:mt-24">
       <h2 className="text-center text-xl md:text-2xl font-bold">

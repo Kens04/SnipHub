@@ -4,7 +4,7 @@ import icon6 from "../../public/images/icon6.png";
 import { MainFeaturesCard } from "./MainFeaturesCard";
 import { Title } from "../_component/Title";
 
-export const MainFeaturesSection = () => {
+export const MainFeaturesSection: React.FC = () => {
   return (
     <div className="mt-14 md:mt-24">
       <Title title="主な機能" />

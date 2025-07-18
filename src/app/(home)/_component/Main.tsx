@@ -3,7 +3,7 @@ import Link from "next/link";
 import mainImage from "../../public/images/Coding.png";
 import { GuestButton } from "./GuestButton";
 
-export const Main = () => {
+export const Main: React.FC = () => {
   return (
     <div className="flex-col-reverse lg:flex-row flex justify-center items-center gap-5 sm:gap-10">
       <div className="lg:w-2/5">

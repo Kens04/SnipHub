@@ -4,7 +4,7 @@ import { supabase } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-export const GuestButton = () => {
+export const GuestButton: React.FC = () => {
   const router = useRouter();
 
   const handleAnonymousLogin = async () => {
