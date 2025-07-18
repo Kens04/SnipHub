@@ -13,7 +13,7 @@ export const Sidebar = () => {
   );
   if (error) return <div>ユーザー情報の読み込みに失敗しました</div>;
   return (
-    <aside className="hidden md:block fixed bg-white w-[280px] left-0 bottom-0 top-[88px]">
+    <aside className="hidden md:block bg-white w-[280px] left-0 bottom-0 top-[88px] min-h-[calc(100vh+12px)] absolute">
       {token && (
         <div className="flex items-center gap-4 p-4 border-t">
           {isLoading ? (
