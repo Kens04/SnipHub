@@ -26,7 +26,7 @@ export const Footer = () => {
             <li>
               <Link
                 className="text-sm md:text-base text-white hover:underline transition"
-                href="/"
+                href="/snippets"
               >
                 スニペット一覧
               </Link>
@@ -34,7 +34,7 @@ export const Footer = () => {
             <li>
               <Link
                 className="text-sm md:text-base text-white hover:underline transition"
-                href="/"
+                href="/active-user"
               >
                 ランキング
               </Link>
@@ -42,7 +42,7 @@ export const Footer = () => {
             <li>
               <Link
                 className="text-sm md:text-base text-white hover:underline transition"
-                href="/"
+                href="/contact"
               >
                 お問い合わせ
               </Link>
@@ -50,7 +50,7 @@ export const Footer = () => {
           </ul>
         </nav>
         <div className="mt-4">
-          <Link href="/">
+          <Link href="https://www.instagram.com/kensan57">
             <FaInstagram className="text-white w-8 h-8 m-auto" />
           </Link>
         </div>
