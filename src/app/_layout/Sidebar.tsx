@@ -6,14 +6,14 @@ import { User } from "../_types/user";
 import avatar from "../public/images/avatar.png";
 import Image from "next/image";
 
-export const Sidebar = () => {
+export const Sidebar: React.FC = () => {
   const { token, session } = useSupabaseSession();
   const { data, error, isLoading } = useDataFetch<User>(
     session?.user.id ? `/api/user/${session?.user.id}` : null
   );
   if (error) return <div>ユーザー情報の読み込みに失敗しました</div>;
   return (
-    <aside className="hidden md:block bg-white w-[280px] left-0 bottom-0 top-[88px] min-h-[calc(100vh+12px)] absolute">
+    <aside className="hidden md:block bg-white w-[280px] left-0 bottom-0 top-[88px] min-h-screen absolute">
       {token && (
         <div className="flex items-center gap-4 p-4 border-t">
           {isLoading ? (

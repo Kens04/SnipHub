@@ -16,7 +16,7 @@ export default function DashboardLayout({
       <Sidebar />
 
       {/* メインエリア */}
-      <div className="mt-[88px] md:ml-[280px] md:mt-[100px] p-4 md:px-8 md:py-20 min-h-screen">
+      <div className="mt-[72px] md:ml-[280px] md:mt-[88px] p-4 md:px-8 md:py-20 min-h-screen">
         {children}
       </div>
     </>
