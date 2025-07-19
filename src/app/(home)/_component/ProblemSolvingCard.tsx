@@ -9,14 +9,14 @@ interface ProblemSolvingCardProps {
   text: string;
 }
 
-export const ProblemSolvingCard = ({
+export const ProblemSolvingCard: React.FC<ProblemSolvingCardProps> = ({
   icon,
   width,
   height,
   alt,
   title,
   text,
-}: ProblemSolvingCardProps) => {
+}) => {
   return (
     <>
       <li className="bg-color-white p-5 w-full md:w-2/6 rounded-2xl">

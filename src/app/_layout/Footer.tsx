@@ -2,7 +2,7 @@ import { FaCode } from "react-icons/fa";
 import Link from "next/link";
 import { FaInstagram } from "react-icons/fa";
 
-export const Footer = () => {
+export const Footer: React.FC = () => {
   return (
     <footer className="bg-color-primary relative z-10">
       <div className="p-4 md:px-8 md:py-5">

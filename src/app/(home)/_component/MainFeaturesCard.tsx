@@ -9,14 +9,14 @@ interface MainFeaturesCardProps {
   text: string;
 }
 
-export const MainFeaturesCard = ({
+export const MainFeaturesCard: React.FC<MainFeaturesCardProps> = ({
   icon,
   width,
   height,
   alt,
   title,
   text,
-}: MainFeaturesCardProps) => {
+}) => {
   return (
     <>
       <li className="bg-color-white p-5 w-full md:w-2/6 rounded-2xl">
