@@ -9,12 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "color-white": "#FFFFFF",
         "color-primary": "#3A5BC7",
         "color-primary-hover": "#2F4AB1",
         "color-secondary": "#F1F4FB",
         "color-danger": "#EE6060",
         "color-text-black": "#333333",
-        "color-text-white": "#F1F4FB",
         "color-text-gray-dark": "#696969",
         "color-text-gray": "#646464",
         "color-text-gray-light": "#969AA4",
