@@ -8,11 +8,13 @@ import SubmitButton from "@/app/_components/SubmitButton";
 import { Label } from "@/app/_components/Label";
 import { ContactSchema } from "../_lib/ContactSchema";
 import { ContactFormType } from "@/app/_types/contactForm";
+import { Toaster } from "react-hot-toast";
 
 export const ContactForm: React.FC = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormType>({
     resolver: zodResolver(ContactSchema),
@@ -25,17 +27,29 @@ export const ContactForm: React.FC = () => {
 
   const onSubmit = async (data: ContactFormType) => {
     const { name, email, message } = data;
-    console.log(name, email, message);
+    const res = await fetch("/api/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        message,
+      }),
+    });
 
-    if (errors) {
-      toast.error("お問い合わせ送信に失敗しました");
-    } else {
+    if (res.ok) {
       toast.success("お問い合わせ送信に成功しました。");
+      reset();
+    } else {
+      toast.error("お問い合わせ送信に失敗しました");
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[450px]">
+      <Toaster />
       <div>
         <Label htmlFor="name">お名前</Label>
         <Input
