@@ -41,9 +41,24 @@ export async function POST(request: NextRequest) {
     ]);
 
     if (customerConfirmation.error || adminNotification.error) {
+      let errorMessage = "";
+
+      if (customerConfirmation.error && adminNotification.error) {
+        errorMessage = "顧客・管理者両方のメール送信に失敗しました";
+      } else if (customerConfirmation.error) {
+        errorMessage = "顧客確認メールの送信に失敗しました";
+      } else if (adminNotification.error) {
+        errorMessage = "管理者通知メールの送信に失敗しました";
+      }
+
+      console.log("メール送信エラー:", {
+        customerError: customerConfirmation.error,
+        adminError: adminNotification.error,
+      });
+
       return NextResponse.json(
         {
-          error: customerConfirmation.error || adminNotification.error,
+          error: errorMessage,
         },
         { status: 400 }
       );
