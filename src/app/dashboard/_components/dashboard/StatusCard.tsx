@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 interface StatusCardProps {
   title: string;
-  number: string;
+  number: string | number;
   text?: ReactNode;
 }
 
