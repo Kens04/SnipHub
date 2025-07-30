@@ -1,5 +1,5 @@
 interface SnippetCountCardProps {
-  number: string;
+  number: number;
   text: string;
 }
 
