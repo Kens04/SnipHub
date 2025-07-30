@@ -27,7 +27,7 @@ export const GET = async (
     }
 
     const userData = await prisma.user.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { supabaseUserId: params.id },
       select: {
         id: true,
         iconUrl: true,
