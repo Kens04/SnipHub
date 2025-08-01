@@ -1,8 +1,8 @@
 "use client";
 
+import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
 import { SnippetCountCard } from "./SnippetCountCard";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { useEffect, useState } from "react";
 
 interface SnippetCountData {
   profile: {
@@ -18,56 +18,54 @@ interface SnippetCountData {
 
 export const SnippetCount: React.FC = () => {
   const { token, user } = useSupabaseSession();
-  const [snippetCount, setSnippetCount] = useState<SnippetCountData>();
 
-  const getSnippetCount = async () => {
-    if (!user || !token) {
-      return;
-    }
+  const { data, error, isLoading } = useAuthDataFetch<SnippetCountData>(
+    user && token ? `/api/user/${user.id}/profile` : null,
+    token
+  );
 
-    try {
-      const res = await fetch(`/api/user/${user.id}/profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "no-store",
-      });
+  if (error) {
+    console.log(error);
+  }
 
-      if (res.ok) {
-        const data = await res.json();
-        setSnippetCount(data);
-      }
-    } catch (error) {
-      if (error) {
-        console.log(error);
-      }
-    }
-  };
+  if (!data) {
+    return (
+      <div className="bg-color-white rounded-lg shadow-md p-5">
+        <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
+        <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+          <SnippetCountCard number="---" text="公開用" />
+          <SnippetCountCard number="---" text="プライベート用" />
+          <SnippetCountCard number="---" text="お気に入り" />
+        </div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (token && user?.id) {
-      getSnippetCount();
-    }
-  }, [token, user]);
+  if (isLoading) {
+    return (
+      <div className="bg-color-white rounded-lg shadow-md p-5">
+        <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
+        <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+          <SnippetCountCard number={0} text="公開用" />
+          <SnippetCountCard number={0} text="プライベート用" />
+          <SnippetCountCard number={0} text="お気に入り" />
+        </div>
+      </div>
+    );
+  }
+
+  const { snippetCounts, _count } = data.profile;
 
   return (
     <div className="bg-color-white rounded-lg shadow-md p-5">
       <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
       <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+        <SnippetCountCard number={snippetCounts.public} text="公開用" />
         <SnippetCountCard
-          number={snippetCount?.profile.snippetCounts.public || 0}
-          text="公開用"
-        />
-        <SnippetCountCard
-          number={snippetCount?.profile.snippetCounts.private || 0}
+          number={snippetCounts.private}
           text="プライベート用"
         />
-        <SnippetCountCard
-          number={snippetCount?.profile._count.favorites || 0}
-          text="お気に入り"
-        />
+        <SnippetCountCard number={_count.favorites} text="お気に入り" />
       </div>
     </div>
   );
