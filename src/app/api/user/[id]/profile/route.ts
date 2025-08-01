@@ -66,13 +66,13 @@ export const GET = async (
     const [publicSnippetCount, privateSnippetCount] = await Promise.all([
       prisma.snippet.count({
         where: {
-          userId: parseInt(params.id),
+          userId: userData.id,
           isPublic: true,
         },
       }),
       prisma.snippet.count({
         where: {
-          userId: parseInt(params.id),
+          userId: userData.id,
           isPublic: false,
         },
       }),
