@@ -26,11 +26,7 @@ export const Status: React.FC = () => {
     token
   );
 
-  if (error) {
-    console.log(error);
-  }
-
-  if (!data) {
+  if (!data || error) {
     return (
       <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
         <StatusCard

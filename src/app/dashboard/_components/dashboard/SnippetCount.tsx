@@ -24,11 +24,7 @@ export const SnippetCount: React.FC = () => {
     token
   );
 
-  if (error) {
-    console.log(error);
-  }
-
-  if (!data) {
+  if (!data || error) {
     return (
       <div className="bg-color-white rounded-lg shadow-md p-5">
         <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
