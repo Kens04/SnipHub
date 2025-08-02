@@ -26,21 +26,36 @@ export const Status: React.FC = () => {
     token
   );
 
-  if (!data || error) {
+  if (isLoading) {
     return (
       <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
         <StatusCard
           title="総スニペット数"
-          number="---"
-          text={<p className="mt-1">公開: --- / プライベート: ---</p>}
+          number="..."
+          text={<p className="mt-1">公開: ... / プライベート: ...</p>}
         />
-        <StatusCard title="獲得ポイント" number="---" />
-        <StatusCard title="アクティブランキング" number="---" />
+        <StatusCard title="獲得ポイント" number="...pt" />
+        <StatusCard title="アクティブランキング" number="...位" />
       </div>
     );
   }
 
-  if (isLoading) {
+  if (error) {
+    console.error("Status取得エラー:", error);
+    return (
+      <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+        <StatusCard
+          title="総スニペット数"
+          number="エラー"
+          text={<p className="mt-1">公開: エラー / プライベート: エラー</p>}
+        />
+        <StatusCard title="獲得ポイント" number="エラー" />
+        <StatusCard title="アクティブランキング" number="エラー" />
+      </div>
+    );
+  }
+
+  if (!data || !data.profile) {
     return (
       <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
         <StatusCard

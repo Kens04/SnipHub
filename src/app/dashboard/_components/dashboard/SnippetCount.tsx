@@ -24,27 +24,41 @@ export const SnippetCount: React.FC = () => {
     token
   );
 
-  if (!data || error) {
-    return (
-      <div className="bg-color-white rounded-lg shadow-md p-5">
-        <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
-        <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
-          <SnippetCountCard number="---" text="公開用" />
-          <SnippetCountCard number="---" text="プライベート用" />
-          <SnippetCountCard number="---" text="お気に入り" />
-        </div>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="bg-color-white rounded-lg shadow-md p-5">
         <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
         <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
-          <SnippetCountCard number={0} text="公開用" />
-          <SnippetCountCard number={0} text="プライベート用" />
-          <SnippetCountCard number={0} text="お気に入り" />
+          <SnippetCountCard number="..." text="公開用" />
+          <SnippetCountCard number="..." text="プライベート用" />
+          <SnippetCountCard number="..." text="お気に入り" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("SnippetCount取得エラー:", error);
+    return (
+      <div className="bg-color-white rounded-lg shadow-md p-5">
+        <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
+        <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+          <SnippetCountCard number="エラー" text="公開用" />
+          <SnippetCountCard number="エラー" text="プライベート用" />
+          <SnippetCountCard number="エラー" text="お気に入り" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || !data.profile) {
+    return (
+      <div className="bg-color-white rounded-lg shadow-md p-5">
+        <h2 className="text-xl md:text-2xl font-bold">マイスニペット</h2>
+        <div className="flex flex-col lg:flex-row gap-4 mt-5 md:mt-10">
+          <SnippetCountCard number="0" text="公開用" />
+          <SnippetCountCard number="0" text="プライベート用" />
+          <SnippetCountCard number="0" text="お気に入り" />
         </div>
       </div>
     );
