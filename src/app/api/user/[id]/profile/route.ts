@@ -1,27 +1,23 @@
+import { ProfileData, ProfileResponse } from "@/app/_types/profile";
 import { getCurrentUser } from "@/app/api/_utils/getCurrentUser";
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-interface UpdateUserProfileRequestBody {
-  iconUrl: string;
-  userName: string;
-  bio: string;
-  githubUrl: string;
-  instagramUrl: string;
-  threadsUrl: string;
-  xUrl: string;
+interface ErrorResponse {
+  status: string;
+  message: string;
 }
 
 export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
-) => {
+): Promise<NextResponse<ProfileResponse | ErrorResponse>> => {
   try {
     const { user, error } = await getCurrentUser(request);
 
     if (error || !user) {
       return NextResponse.json(
-        { status: error?.message || "認証が必要です" },
+        { status: "error", message: "認証が必要です" },
         { status: 401 }
       );
     }
@@ -57,6 +53,7 @@ export const GET = async (
     if (!userData) {
       return NextResponse.json(
         {
+          status: "error",
           message: "ユーザーが見つかりません",
         },
         { status: 404 }
@@ -108,8 +105,15 @@ export const GET = async (
     });
   } catch (error) {
     if (error instanceof Error) {
-      return NextResponse.json({ status: error.message }, { status: 400 });
+      return NextResponse.json(
+        { status: error.message, message: error.message },
+        { status: 400 }
+      );
     }
+    return NextResponse.json(
+      { status: "error", message: "不明なエラーが発生しました" },
+      { status: 500 }
+    );
   }
 };
 
@@ -159,7 +163,7 @@ export const PUT = async (
       instagramUrl,
       threadsUrl,
       xUrl,
-    }: UpdateUserProfileRequestBody = body;
+    }: ProfileData = body;
 
     const profile = await prisma.user.update({
       where: {
