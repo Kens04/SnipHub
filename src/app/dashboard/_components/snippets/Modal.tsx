@@ -17,12 +17,16 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const handleDeleteConfirm = async () => {
     try {
+      toast.loading(`「${title}」のスニペットを削除中です・・・`);
+
       const res = await fetch(`/api/snippet/${snippetId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      toast.remove();
 
       if (res.ok) {
         toast.success(`「${title}」のスニペットを削除しました`);
