@@ -16,25 +16,17 @@ export const GET = async (
       );
     }
 
-    const { id } = params;
-
-    const targetUser = await prisma.user.findUnique({
-      where: {
-        id: parseInt(id),
-      },
+    // 現在のユーザーのSupabaseUserIdを取得
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { supabaseUserId: true },
     });
 
-    if (!targetUser) {
-      return NextResponse.json({
-        message: "ユーザーが見つかりません",
-        status: 404,
-      });
-    }
-
-    const isOwnProfile = user.id === parseInt(id);
+    // SupabaseUserIdで比較して自分のプロフィールかどうか判定
+    const isOwnProfile = currentUser?.supabaseUserId === params.id;
 
     const snippets = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { supabaseUserId: params.id },
       select: {
         snippets: {
           where: isOwnProfile ? {} : { isPublic: true },
@@ -45,6 +37,7 @@ export const GET = async (
             contentMd: true,
             previewCode: true,
             isPublic: true,
+            updatedAt: true,
             user: {
               select: {
                 id: true,

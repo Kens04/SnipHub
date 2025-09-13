@@ -207,6 +207,58 @@ export const DELETE = async (
   }
 };
 
+export const PATCH = async (
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) => {
+  try {
+    const { user, error } = await getCurrentUser(request);
+
+    if (error || !user) {
+      return NextResponse.json(
+        { status: error?.message || "認証が必要です" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = params;
+
+    const existingSnippet = await prisma.snippet.findUnique({
+      where: {
+        id: parseInt(id),
+        userId: user.id,
+      },
+    });
+
+    if (!existingSnippet) {
+      return NextResponse.json(
+        { message: "スニペットが見つかりません" },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+
+    const { isPublic }: UpdateSnippetRequestBody = body;
+    const snippetIsVisible = await prisma.snippet.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        isPublic,
+      },
+    });
+
+    return NextResponse.json(
+      { status: "OK", message: isPublic ? "スニペットを公開にしました" : "スニペットを非公開にしました", snippetIsVisible },
+      { status: 200 }
+    );
+  } catch (error) {
+    if (error instanceof Error)
+      return NextResponse.json({ status: error.message }, { status: 400 });
+  }
+};
+
 export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
