@@ -17,7 +17,7 @@ const SnippetFilters: React.FC<SnippetFiltersProps> = ({
     <>
       <div className="flex gap-2 flex-wrap mt-5">
         <input
-          className="px-2 w-full sm:w-[calc(50%-8px)] lg:w-64 rounded border border-color-border h-9"
+          className="px-2 w-full sm:flex-1 sm:basis-1/2 lg:basis-64 rounded border border-color-border h-9"
           type="text"
           placeholder="スニペットを検索..."
           value={searchText}
@@ -25,7 +25,7 @@ const SnippetFilters: React.FC<SnippetFiltersProps> = ({
         />
         <Select
           placeholder="カテゴリを選んでください"
-          className="w-full sm:w-[calc(50%-8px)] lg:w-64"
+          className="w-full sm:flex-1 sm:basis-1/2 lg:basis-64"
           isClearable
           classNamePrefix="select"
           options={categoryOptions}
@@ -39,7 +39,7 @@ const SnippetFilters: React.FC<SnippetFiltersProps> = ({
         />
         <Select
           placeholder="タグを選んでください"
-          className="w-full sm:w-[calc(50%-8px)] lg:w-64"
+          className="w-full sm:flex-1 sm:basis-1/2 lg:basis-64"
           isMulti
           classNamePrefix="select"
           options={tagOptions}
@@ -52,7 +52,7 @@ const SnippetFilters: React.FC<SnippetFiltersProps> = ({
           }}
         />
         <input
-          className="px-2 w-full sm:w-[calc(50%-8px)] lg:w-64 rounded border border-color-border h-9"
+          className="px-2 w-full sm:flex-1 sm:basis-1/2 lg:basis-64 rounded border border-color-border h-9"
           type="date"
           placeholder="更新日"
           value={selectedDate}
