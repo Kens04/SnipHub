@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiPlus } from "react-icons/fi";
 import { SnippetTabProps } from "../_type/snippetFilters";
+import LinkMenu from "./LinkMenu";
 
 const SnippetTabs: React.FC<SnippetTabProps> = ({ snippetType }) => {
   return (
@@ -20,36 +21,27 @@ const SnippetTabs: React.FC<SnippetTabProps> = ({ snippetType }) => {
         </div>
       </div>
       <div className="flex gap-4 border-b-2 border-color-text-gray-light mt-10">
-        <Link
-          className={
-            snippetType === "all"
-              ? "text-color-primary hover:text-color-primary-hover relative top-[2px] text-base md:text-xl md:leading-loose font-semibold border-b-2 border-color-primary"
-              : "font-semibold text-base md:text-xl relative top-[2px] md:leading-loose"
-          }
+        <LinkMenu
+          snippetType={snippetType}
+          targetType="all"
           href="/dashboard/snippets"
         >
           すべて
-        </Link>
-        <Link
-          className={
-            snippetType === "public"
-              ? "text-color-primary hover:text-color-primary-hover relative top-[2px] text-base md:text-xl md:leading-loose font-semibold border-b-2 border-color-primary"
-              : "font-semibold text-base md:text-xl relative top-[2px] md:leading-loose"
-          }
+        </LinkMenu>
+        <LinkMenu
+          snippetType={snippetType}
+          targetType="public"
           href="/dashboard/snippets/public"
         >
           公開用
-        </Link>
-        <Link
-          className={
-            snippetType === "private"
-              ? "text-color-primary hover:text-color-primary-hover relative top-[2px] text-base md:text-xl md:leading-loose font-semibold border-b-2 border-color-primary"
-              : "font-semibold text-base md:text-xl relative top-[2px] md:leading-loose"
-          }
+        </LinkMenu>
+        <LinkMenu
+          snippetType={snippetType}
+          targetType="private"
           href="/dashboard/snippets/private"
         >
           プライベート用
-        </Link>
+        </LinkMenu>
       </div>
     </>
   );
