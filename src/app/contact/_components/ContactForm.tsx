@@ -8,7 +8,6 @@ import SubmitButton from "@/app/_components/SubmitButton";
 import { Label } from "@/app/_components/Label";
 import { ContactSchema } from "../_lib/ContactSchema";
 import { ContactFormType } from "@/app/_types/contactForm";
-import { Toaster } from "react-hot-toast";
 
 export const ContactForm: React.FC = () => {
   const {
@@ -49,7 +48,6 @@ export const ContactForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[450px]">
-      <Toaster />
       <div>
         <Label htmlFor="name">お名前</Label>
         <Input
