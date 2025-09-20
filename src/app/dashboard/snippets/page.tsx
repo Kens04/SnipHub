@@ -4,7 +4,6 @@ import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
 import { SnippetData } from "@/app/_types/snippet";
 import { Modal } from "../_components/snippets/Modal";
-import { Toaster } from "react-hot-toast";
 import { useSnippetFiltering } from "./_hooks/useSnippetFiltering";
 import SnippetTable from "./_components/SnippetTable";
 import SnippetTabs from "./_components/SnippetTabs";
@@ -37,7 +36,6 @@ const Snippets: React.FC = () => {
 
   return (
     <div>
-      <Toaster />
       <SnippetTabs snippetType="all" />
       <SnippetFilters
         searchText={searchText}
