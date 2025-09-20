@@ -1,3 +1,4 @@
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 interface ModalProps {
@@ -15,8 +16,11 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   token,
 }) => {
+  const [disabled, setDisabled] = useState(false);
+
   const handleDeleteConfirm = async () => {
     try {
+      setDisabled(true);
       toast.loading(`「${title}」のスニペットを削除中です・・・`);
 
       const res = await fetch(`/api/snippet/${snippetId}`, {
@@ -33,9 +37,11 @@ export const Modal: React.FC<ModalProps> = ({
         onDeleteSuccess();
       } else {
         toast.error(`「${title}」のスニペットの削除に失敗しました`);
+        setDisabled(false);
       }
     } catch (error) {
       console.log(error);
+      setDisabled(false);
     }
   };
 
@@ -51,13 +57,23 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
           <div className="flex gap-4 flex-wrap justify-center items-center mt-5">
             <button
-              className="text-white bg-color-primary hover:bg-color-primary-hover font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto"
+              className={
+                disabled
+                  ? "bg-gray-400 text-gray-600 cursor-not-allowed opacity-60 font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto"
+                  : `text-white bg-color-primary hover:bg-color-primary-hover font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto`
+              }
               onClick={handleDeleteCancel}
+              disabled={disabled}
             >
               キャンセル
             </button>
             <button
-              className="text-white bg-color-danger hover:bg-color-danger-hover transition-opacity font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto"
+              className={
+                disabled
+                  ? "bg-gray-400 text-gray-600 cursor-not-allowed opacity-60 font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto"
+                  : `text-white bg-color-danger hover:bg-color-danger-hover transition-opacity font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 items-center justify-center w-full md:w-auto`
+              }
+              disabled={disabled}
               onClick={handleDeleteConfirm}
             >
               削除する
