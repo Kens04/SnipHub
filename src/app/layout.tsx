@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 import { Header } from "./_layout/Header";
 import { Footer } from "./_layout/Footer";
 
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${noto.className} antialiased`}>
+        <Toaster />
         <Header />
         <main>{children}</main>
         <Footer />

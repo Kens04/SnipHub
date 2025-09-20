@@ -3,13 +3,13 @@
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
 import { SnippetData } from "@/app/_types/snippet";
-import { Modal } from "../_components/snippets/Modal";
-import { useSnippetFiltering } from "./_hooks/useSnippetFiltering";
-import SnippetTable from "./_components/SnippetTable";
-import SnippetTabs from "./_components/SnippetTabs";
-import SnippetFilters from "./_components/SnippetFilters";
+import { useSnippetFiltering } from "../_hooks/useSnippetFiltering";
+import { Modal } from "../../_components/snippets/Modal";
+import SnippetTabs from "../_components/SnippetTabs";
+import SnippetFilters from "../_components/SnippetFilters";
+import SnippetTable from "../_components/SnippetTable";
 
-const Snippets: React.FC = () => {
+const SnippetsPublic: React.FC = () => {
   const { token, user } = useSupabaseSession();
   const { data, error, isLoading, mutate } = useAuthDataFetch<SnippetData>(
     user && token ? `/api/user/${user.id}/snippets` : null,
@@ -36,7 +36,7 @@ const Snippets: React.FC = () => {
 
   return (
     <div>
-      <SnippetTabs snippetType="all" />
+      <SnippetTabs snippetType="public" />
       <SnippetFilters
         searchText={searchText}
         selectedCategory={selectedCategory}
@@ -55,7 +55,7 @@ const Snippets: React.FC = () => {
         handleDeleteClick={handleDeleteClick}
         handleToggleVisibility={handleToggleVisibility}
         filteredSnippets={filteredSnippets}
-        snippetType="all"
+        snippetType="public"
       />
       {deleteModal.isOpen ? (
         <Modal
@@ -70,4 +70,4 @@ const Snippets: React.FC = () => {
   );
 };
 
-export default Snippets;
+export default SnippetsPublic;
