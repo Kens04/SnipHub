@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={`${noto.className} antialiased`}>
         <Toaster />
         <Header />
-        <main>{children}</main>
+        <main className="relative">{children}</main>
         <Footer />
       </body>
     </html>
