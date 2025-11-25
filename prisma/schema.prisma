@@ -111,8 +111,7 @@ model Snippet {
   userId       Int
   title        String
   description  String
-  contentMd    String
-  previewCode  String
+  contentBlocks Json
   isPublic     Boolean
   categoryId   Int
   createdAt    DateTime @default(now())
