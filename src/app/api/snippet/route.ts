@@ -5,8 +5,7 @@ import { getCurrentUser } from "../_utils/getCurrentUser";
 interface CreateSnippetRequestBody {
   title: string;
   description: string;
-  contentMd: string;
-  previewCode: string;
+  contentBlocks: string;
   isPublic: boolean;
   categoryId: number;
   tagIds: number[];
@@ -28,8 +27,7 @@ export async function POST(req: NextRequest) {
     const {
       title,
       description,
-      contentMd,
-      previewCode,
+      contentBlocks,
       isPublic,
       categoryId,
       tagIds,
@@ -40,8 +38,7 @@ export async function POST(req: NextRequest) {
         data: {
           title,
           description,
-          contentMd,
-          previewCode,
+          contentBlocks,
           isPublic,
           userId: user.id,
           categoryId,
