@@ -7,7 +7,6 @@ interface PublicButtonProps {
   children: ReactNode;
   className?: string;
   onClick: () => void;
-  disabled?: boolean;
 }
 
 const PublicButton: React.FC<PublicButtonProps> = ({
@@ -16,15 +15,14 @@ const PublicButton: React.FC<PublicButtonProps> = ({
   isSubmittingText = "送信中...",
   className = "",
   onClick,
-  disabled = false,
 }) => {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={isSubmitting || disabled}
+      disabled={isSubmitting}
       className={`w-full font-bold rounded-lg text-sm px-5 py-2.5 text-center ${
-        isSubmitting || disabled
+        isSubmitting
           ? "bg-gray-300 text-text-black pointer-events-none"
           : className
       }`}
