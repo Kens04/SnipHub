@@ -1,12 +1,27 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../_utils/getCurrentUser";
+import { Prisma } from "@prisma/client";
+
+interface ContentBlockInput {
+  type: "markdown" | "text" | "preview";
+  content: string;
+  order: number;
+  template?: string;
+  files?: Record<string, { code: string }>;
+}
+
+interface blockData {
+  type: string;
+  order: number;
+  content?: string | null;
+  preview?: Prisma.ContentPreviewCreateNestedOneWithoutContentBlockInput;
+}
 
 interface CreateSnippetRequestBody {
   title: string;
   description: string;
-  contentMd: string;
-  previewCode: string;
+  contentBlocks: ContentBlockInput[];
   isPublic: boolean;
   categoryId: number;
   tagIds: number[];
@@ -28,8 +43,7 @@ export async function POST(req: NextRequest) {
     const {
       title,
       description,
-      contentMd,
-      previewCode,
+      contentBlocks,
       isPublic,
       categoryId,
       tagIds,
@@ -40,8 +54,6 @@ export async function POST(req: NextRequest) {
         data: {
           title,
           description,
-          contentMd,
-          previewCode,
           isPublic,
           userId: user.id,
           categoryId,
@@ -53,6 +65,32 @@ export async function POST(req: NextRequest) {
                 },
               },
             })),
+          },
+          contentBlocks: {
+            create: contentBlocks.map((block) => {
+              const blockData: blockData = {
+                type: block.type,
+                order: block.order,
+                content: block.type === "preview" ? null : block.content,
+              };
+
+              if (block.type === "preview" && block.files) {
+                blockData.preview = {
+                  create: {
+                    template: block.template || "react-ts",
+                    files: {
+                      create: Object.entries(block.files).map(
+                        ([filePath, file]) => ({
+                          filePath: filePath,
+                          code: file.code,
+                        })
+                      ),
+                    },
+                  },
+                };
+              }
+              return blockData;
+            }),
           },
         },
       });

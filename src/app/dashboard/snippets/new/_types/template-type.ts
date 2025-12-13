@@ -1,0 +1,1 @@
+export type TemplateType = "react-ts" | "react" | "vanilla" | "static";

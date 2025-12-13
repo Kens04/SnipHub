@@ -28,7 +28,7 @@ export const Header: React.FC = () => {
   if (error) return <div>ユーザー情報の読み込みに失敗しました</div>;
 
   return (
-    <header className="bg-color-white text-color-black px-4 md:px-6 py-4 font-bold flex justify-between items-center fixed z-[1] w-full top-0 left-0 md:h-[88px]">
+    <header className="bg-color-white text-color-black px-4 md:px-6 py-4 font-bold flex justify-between items-center fixed z-[10] w-full top-0 left-0 md:h-[88px]">
       <Link href="/" className="flex items-center gap-2">
         <FaCode className="text-color-primary w-4 h-4 md:w-6 md:h-6" />
         <span className="text-2xl md:text-3xl">SnipHub</span>

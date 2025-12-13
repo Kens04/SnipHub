@@ -34,8 +34,7 @@ export const GET = async (
             id: true,
             title: true,
             description: true,
-            contentMd: true,
-            previewCode: true,
+            contentBlocks: true,
             isPublic: true,
             updatedAt: true,
             user: {
