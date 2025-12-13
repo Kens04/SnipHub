@@ -107,21 +107,56 @@ model Favorite {
 
 // スニペット
 model Snippet {
-  id           Int @id @default(autoincrement())
-  userId       Int
-  title        String
-  description  String
-  contentBlocks Json
-  isPublic     Boolean
-  categoryId   Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category     Category @relation(fields: [categoryId], references: [id])
-  tags         SnippetTag[]
-  comments     Comment[]
-  likes        Like[]
-  favorites    Favorite[]
+  id            Int @id @default(autoincrement())
+  userId        Int
+  title         String
+  description   String
+  isPublic      Boolean
+  categoryId    Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category      Category @relation(fields: [categoryId], references: [id])
+  tags          SnippetTag[]
+  comments      Comment[]
+  likes         Like[]
+  favorites     Favorite[]
+  contentBlocks ContentBlock[]
+}
+
+model ContentBlock {
+  id          Int @id @default(autoincrement())
+  snippetId   Int
+  snippet     Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  type        String
+  order       Int
+  content     String?  @db.Text
+  preview     ContentPreview?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContentPreview {
+  id             Int @id @default(autoincrement())
+  contentBlockId Int          @unique
+  contentBlock   ContentBlock @relation(fields: [contentBlockId], references: [id], onDelete: Cascade)
+  template       String
+  files          PreviewFile[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Previewブロック内のファイル
+model PreviewFile {
+  id             Int            @id @default(autoincrement())
+  previewId      Int
+  preview        ContentPreview @relation(fields: [previewId], references: [id], onDelete: Cascade)
+  filePath       String
+  code           String         @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([previewId, filePath])
 }
 
 // カテゴリー
