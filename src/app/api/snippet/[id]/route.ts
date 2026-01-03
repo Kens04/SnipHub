@@ -72,6 +72,7 @@ export const GET = async (
         },
         contentBlocks: {
           select: {
+            id: true,
             type: true,
             content: true,
             order: true,
@@ -328,6 +329,7 @@ export const PUT = async (
         title,
         description,
         contentBlocks: {
+          deleteMany: {},
           create: contentBlocks.map((block) => {
             const blockData: blockData = {
               type: block.type,
