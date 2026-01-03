@@ -16,6 +16,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiFile } from "react-icons/fi";
 
 interface CustomSandpackProps {
   contentCode?: string;
+  initialFiles?: Record<string, { code: string }>;
   initialTemplate?: TemplateType;
   onCodeChange?: (
     code: string,
@@ -170,7 +171,9 @@ const FileManager: React.FC<{
           onClick={() => setIsAddingFile(true)}
           disabled={disabled}
           className={`flex items-center gap-1 px-2 py-1 text-xs bg-color-primary text-white rounded transition-colors ${
-            disabled ? "cursor-not-allowed opacity-50" : "hover:bg-color-primary-hover"
+            disabled
+              ? "cursor-not-allowed opacity-50"
+              : "hover:bg-color-primary-hover"
           }`}
         >
           <FiPlus size={12} />
@@ -204,9 +207,7 @@ const FileManager: React.FC<{
               onClick={handleAddFile}
               disabled={disabled}
               className={`px-3 py-1 text-xs w-full font-bold text-center bg-blue-500 text-white rounded whitespace-nowrap ${
-                disabled
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-blue-600"
+                disabled ? "cursor-not-allowed opacity-50" : "hover:bg-blue-600"
               }`}
             >
               追加
@@ -408,6 +409,7 @@ const FileOperations: React.FC<{
 
 const CustomSandpack: React.FC<CustomSandpackProps> = ({
   contentCode,
+  initialFiles,
   initialTemplate = "react-ts",
   onCodeChange,
   disabled = false,
@@ -415,7 +417,9 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
   const [template, setTemplate] = useState<TemplateType>(initialTemplate);
   const [theme, setTheme] = useState<ThemeType>("light");
   const [files, setFiles] = useState(
-    getDefaultFiles({ template: initialTemplate, contentCode })
+    !initialFiles
+      ? getDefaultFiles({ template: initialTemplate, contentCode })
+      : initialFiles
   );
 
   const isDark = theme === "dark";
