@@ -8,7 +8,7 @@ import {
   SandpackFileExplorer,
   useSandpack,
 } from "@codesandbox/sandpack-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getDefaultFiles } from "./getDefaultFiles";
 import { ThemeType } from "../_types/themeType";
 import { TemplateType } from "../_types/template-type";
@@ -40,9 +40,20 @@ const CodeWatcher: React.FC<CodeWatcherProps> = ({
   template,
 }) => {
   const { sandpack } = useSandpack();
+  const isFirstRender = useRef(true);
+  const onCodeChangeRef = useRef(onCodeChange);
 
   useEffect(() => {
-    if (onCodeChange) {
+    onCodeChangeRef.current = onCodeChange;
+  }, [onCodeChange]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (onCodeChangeRef.current) {
       const activeFile = sandpack.activeFile;
       const activeCode = sandpack.files[activeFile]?.code || "";
 
@@ -53,9 +64,9 @@ const CodeWatcher: React.FC<CodeWatcherProps> = ({
         return acc;
       }, {});
 
-      onCodeChange(activeCode, template, allFiles);
+      onCodeChangeRef.current(activeCode, template, allFiles);
     }
-  }, [sandpack.files, sandpack.activeFile, template, onCodeChange]);
+  }, [sandpack.files, sandpack.activeFile, template]);
 
   return null;
 };
