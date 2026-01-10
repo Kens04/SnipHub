@@ -9,14 +9,13 @@ import { AddContentBlockButtons } from "../new/_components/AddContentBlockButton
 import PublicButton from "../new/_components/PublicButton";
 import { ContentBlockList } from "./ContentBlockList";
 import { ContentBlock } from "../new/_types/contentBlock";
+import { useAllCategoriesAndTags } from "../_hooks/useAllCategoriesAndTags";
 
 interface SnippetFormProps {
   title: string;
   register: UseFormRegister<createSnippetType>;
   errors: FieldErrors<createSnippetType>;
   isSubmitting: boolean;
-  categoryOptions: Category[];
-  tagOptions: Tag[];
   selectedCategory: Category | null;
   selectedTags: Tag[];
   onCategoryChange: (category: Category | null) => void;
@@ -44,8 +43,6 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({
   register,
   errors,
   isSubmitting,
-  categoryOptions,
-  tagOptions,
   selectedCategory,
   selectedTags,
   onCategoryChange,
@@ -62,6 +59,9 @@ export const SnippetForm: React.FC<SnippetFormProps> = ({
   onPrivateSubmit,
   onPublicSubmit,
 }) => {
+
+  const { categoryOptions, tagOptions } = useAllCategoriesAndTags();
+
   return (
     <div>
       <h2 className="text-left text-color-text-black text-2xl md:text-3xl font-bold">

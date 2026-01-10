@@ -7,7 +7,6 @@ import { CreateSnippetSchema } from "./_lib/CreateSnippetSchema";
 import { createSnippetType } from "./_types/createSnippet";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useState } from "react";
-import { useAllCategoriesAndTags } from "../_hooks/useAllCategoriesAndTags";
 import { Category } from "./_types/category";
 import { Tag } from "./_types/tag";
 import { useContentBlocks } from "../_hooks/useContentBlocks";
@@ -15,7 +14,6 @@ import { SnippetForm } from "../_components/SnippetForm";
 
 const CreateSnippet: React.FC = () => {
   const { token } = useSupabaseSession();
-  const { categoryOptions, tagOptions } = useAllCategoriesAndTags(token);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
@@ -117,8 +115,6 @@ const CreateSnippet: React.FC = () => {
       register={register}
       errors={errors}
       isSubmitting={isSubmitting}
-      categoryOptions={categoryOptions}
-      tagOptions={tagOptions}
       selectedCategory={selectedCategory}
       selectedTags={selectedTags}
       onCategoryChange={handleCategoryChange}

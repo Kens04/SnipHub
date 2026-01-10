@@ -7,7 +7,6 @@ import { SnippetData } from "@/app/_types/snippet";
 import { createSnippetType } from "../new/_types/createSnippet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateSnippetSchema } from "../new/_lib/CreateSnippetSchema";
-import { useAllCategoriesAndTags } from "../_hooks/useAllCategoriesAndTags";
 import { useEffect, useState } from "react";
 import { Category } from "../new/_types/category";
 import { Tag } from "../new/_types/tag";
@@ -20,12 +19,10 @@ import { SnippetForm } from "../_components/SnippetForm";
 const EditSnippet = ({ params }: { params: { id: string } }) => {
   const { token, user } = useSupabaseSession();
   const { data } = useAuthDataFetch<SnippetData>(
-    user && token ? `/api/snippet/${params.id}` : null,
+    user ? `/api/snippet/${params.id}` : null,
     token
   );
   const router = useRouter();
-
-  const { categoryOptions, tagOptions } = useAllCategoriesAndTags(token);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
@@ -167,8 +164,6 @@ const EditSnippet = ({ params }: { params: { id: string } }) => {
       register={register}
       errors={errors}
       isSubmitting={isSubmitting}
-      categoryOptions={categoryOptions}
-      tagOptions={tagOptions}
       selectedCategory={selectedCategory}
       selectedTags={selectedTags}
       onCategoryChange={handleCategoryChange}
