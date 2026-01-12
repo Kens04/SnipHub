@@ -52,8 +52,6 @@ export const GET = async (
                 id: true,
                 title: true,
                 description: true,
-                contentMd: true,
-                previewCode: true,
                 isPublic: true,
                 user: {
                   select: {
@@ -74,6 +72,20 @@ export const GET = async (
                       select: {
                         id: true,
                         name: true,
+                      },
+                    },
+                  },
+                },
+                contentBlocks: {
+                  select: {
+                    id: true,
+                    type: true,
+                    content: true,
+                    order: true,
+                    preview: {
+                      select: {
+                        template: true,
+                        files: true,
                       },
                     },
                   },

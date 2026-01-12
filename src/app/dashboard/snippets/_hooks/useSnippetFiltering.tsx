@@ -1,10 +1,10 @@
-import { SnippetData } from "@/app/_types/snippet";
+import { SnippetsData } from "@/app/_types/snippet";
 import { useMemo, useState } from "react";
 import { MultiValue } from "react-select";
 import toast from "react-hot-toast";
 
 export const useSnippetFiltering = (
-  data: SnippetData | undefined,
+  data: SnippetsData | undefined,
   token: string | null,
   mutate: () => void
 ) => {

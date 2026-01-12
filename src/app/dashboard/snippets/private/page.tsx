@@ -2,7 +2,7 @@
 
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
-import { SnippetData } from "@/app/_types/snippet";
+import { SnippetsData } from "@/app/_types/snippet";
 import { useSnippetFiltering } from "../_hooks/useSnippetFiltering";
 import { Modal } from "../../_components/snippets/Modal";
 import SnippetTabs from "../_components/SnippetTabs";
@@ -11,7 +11,7 @@ import SnippetTable from "../_components/SnippetTable";
 
 const SnippetsPrivate: React.FC = () => {
   const { token, user } = useSupabaseSession();
-  const { data, error, isLoading, mutate } = useAuthDataFetch<SnippetData>(
+  const { data, error, isLoading, mutate } = useAuthDataFetch<SnippetsData>(
     user && token ? `/api/user/${user.id}/snippets` : null,
     token
   );

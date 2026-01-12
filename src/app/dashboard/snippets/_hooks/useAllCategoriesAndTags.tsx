@@ -1,4 +1,5 @@
 import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 interface Category {
   id: number;
@@ -18,7 +19,8 @@ interface TagsResponse {
   tags?: Tag[];
 }
 
-export const useAllCategoriesAndTags = (token: string | null) => {
+export const useAllCategoriesAndTags = () => {
+  const { token } = useSupabaseSession();
   const { data: categoriesData } = useAuthDataFetch<CategoriesResponse>(
     token ? "/api/category" : null,
     token

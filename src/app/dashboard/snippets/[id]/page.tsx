@@ -1,26 +1,36 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
-import { CreateSnippetSchema } from "./_lib/CreateSnippetSchema";
-import { createSnippetType } from "./_types/createSnippet";
+import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { useState } from "react";
-import { Category } from "./_types/category";
-import { Tag } from "./_types/tag";
+import { SnippetData } from "@/app/_types/snippet";
+import { createSnippetType } from "../new/_types/createSnippet";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateSnippetSchema } from "../new/_lib/CreateSnippetSchema";
+import { useEffect, useState } from "react";
+import { Category } from "../new/_types/category";
+import { Tag } from "../new/_types/tag";
+import { TemplateType } from "../new/_types/template-type";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import { useContentBlocks } from "../_hooks/useContentBlocks";
 import { SnippetForm } from "../_components/SnippetForm";
 
-const CreateSnippet: React.FC = () => {
-  const { token } = useSupabaseSession();
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+const EditSnippet = ({ params }: { params: { id: string } }) => {
+  const { token, user } = useSupabaseSession();
+  const { data } = useAuthDataFetch<SnippetData>(
+    user ? `/api/snippet/${params.id}` : null,
+    token
+  );
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<createSnippetType>({
@@ -45,6 +55,48 @@ const CreateSnippet: React.FC = () => {
     contentBlockDelete,
     contentBlockOrder,
   } = useContentBlocks();
+
+  const snippet = data?.snippet;
+
+  useEffect(() => {
+    if (!snippet) {
+      return;
+    }
+
+    setValue("title", snippet.title);
+    setValue("description", snippet.description);
+    setSelectedCategory({
+      value: String(snippet.category.id),
+      label: snippet.category.name,
+    });
+    setSelectedTags(
+      snippet.tags.map((tag) => ({
+        value: String(tag.tag.id),
+        label: tag.tag.name,
+      }))
+    );
+    setContentBlocks(
+      snippet.contentBlocks.map((contentBlock) => ({
+        id: contentBlock.id,
+        type: contentBlock.type,
+        content: contentBlock.content || "",
+        order: contentBlock.order,
+        ...(contentBlock.type === "preview"
+          ? {
+              template: contentBlock.preview?.template as TemplateType,
+              files: Array.isArray(contentBlock.preview?.files)
+                ? contentBlock.preview.files.reduce<
+                    Record<string, { code: string }>
+                  >((acc, file) => {
+                    acc[file.filePath] = { code: file.code };
+                    return acc;
+                  }, {})
+                : contentBlock.preview?.files || {},
+            }
+          : {}),
+      }))
+    );
+  }, [snippet, setValue, setContentBlocks]);
 
   const handleCategoryChange = (category: Category | null) => {
     setSelectedCategory(category);
@@ -72,8 +124,8 @@ const CreateSnippet: React.FC = () => {
         (a, b) => a.order - b.order
       );
 
-      const res = await fetch("/api/snippet", {
-        method: "POST",
+      const res = await fetch(`/api/snippet/${params.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -91,18 +143,15 @@ const CreateSnippet: React.FC = () => {
       if (res.ok) {
         toast.success(
           isPublic
-            ? "スニペットを公開用で作成しました"
-            : "スニペットをプライベート用で作成しました"
+            ? "スニペットを公開用で更新しました"
+            : "スニペットをプライベート用で更新しました"
         );
-        reset();
-        setContentBlocks([]);
-        setSelectedCategory(null);
-        setSelectedTags([]);
+        router.replace("/dashboard/snippets");
       } else {
-        toast.error("スニペットの作成に失敗しました");
+        toast.error("スニペットの更新に失敗しました");
       }
     } catch {
-      toast.error("スニペットの作成に失敗しました");
+      toast.error("スニペットの更新に失敗しました");
     }
   };
 
@@ -111,7 +160,7 @@ const CreateSnippet: React.FC = () => {
 
   return (
     <SnippetForm
-      title="スニペット作成"
+      title="スニペット編集"
       register={register}
       errors={errors}
       isSubmitting={isSubmitting}
@@ -134,4 +183,4 @@ const CreateSnippet: React.FC = () => {
   );
 };
 
-export default CreateSnippet;
+export default EditSnippet;

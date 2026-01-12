@@ -1,12 +1,27 @@
 import { prisma } from "@/utils/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../_utils/getCurrentUser";
+import { Prisma } from "@prisma/client";
+
+interface ContentBlockInput {
+  type: "markdown" | "text" | "preview";
+  content: string;
+  order: number;
+  template?: string;
+  files?: Record<string, { code: string }>;
+}
+
+interface blockData {
+  type: string;
+  order: number;
+  content?: string | null;
+  preview?: Prisma.ContentPreviewCreateNestedOneWithoutContentBlockInput;
+}
 
 interface UpdateSnippetRequestBody {
   title: string;
   description: string;
-  contentMd: string;
-  previewCode: string;
+  contentBlocks: ContentBlockInput[];
   isPublic: boolean;
   categoryId: number;
   tagIds: number[];
@@ -51,6 +66,20 @@ export const GET = async (
               select: {
                 id: true,
                 name: true,
+              },
+            },
+          },
+        },
+        contentBlocks: {
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            order: true,
+            preview: {
+              select: {
+                template: true,
+                files: true,
               },
             },
           },
@@ -287,8 +316,7 @@ export const PUT = async (
     const {
       title,
       description,
-      contentMd,
-      previewCode,
+      contentBlocks,
       isPublic,
       categoryId,
       tagIds,
@@ -300,8 +328,33 @@ export const PUT = async (
       data: {
         title,
         description,
-        contentMd,
-        previewCode,
+        contentBlocks: {
+          deleteMany: {},
+          create: contentBlocks.map((block) => {
+            const blockData: blockData = {
+              type: block.type,
+              order: block.order,
+              content: block.type === "preview" ? null : block.content,
+            };
+
+            if (block.type === "preview" && block.files) {
+              blockData.preview = {
+                create: {
+                  template: block.template || "react-ts",
+                  files: {
+                    create: Object.entries(block.files).map(
+                      ([filePath, file]) => ({
+                        filePath: filePath,
+                        code: file.code,
+                      })
+                    ),
+                  },
+                },
+              };
+            }
+            return blockData;
+          }),
+        },
         isPublic,
         categoryId,
         tags: {
