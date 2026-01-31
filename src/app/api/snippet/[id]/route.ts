@@ -25,6 +25,8 @@ interface UpdateSnippetRequestBody {
   isPublic: boolean;
   categoryId: number;
   tagIds: number[];
+  likes: number[];
+  favorites: number[];
 }
 
 export const GET = async (
