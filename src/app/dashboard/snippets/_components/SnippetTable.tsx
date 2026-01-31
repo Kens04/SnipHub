@@ -1,7 +1,6 @@
 import { FaRegEdit } from "react-icons/fa";
 import { RiDeleteBinLine } from "react-icons/ri";
-import { LuEye } from "react-icons/lu";
-import { LuEyeClosed } from "react-icons/lu";
+import { LuEye, LuEyeClosed, LuSquareArrowOutUpRight } from "react-icons/lu";
 import Link from "next/link";
 import { SnippetTableProps } from "../_type/snippetFilters";
 
@@ -82,6 +81,9 @@ const SnippetTable: React.FC<SnippetTableProps> = ({
               <td className="border p-2">
                 <div className="flex gap-1">
                   <Link href={`/dashboard/snippets/${snippet.id}`}>
+                    <LuSquareArrowOutUpRight className="text-color-text-black w-4 h-4 md:w-6 md:h-6 mr-1" />
+                  </Link>
+                  <Link href={`/dashboard/snippets/${snippet.id}/edit`}>
                     <FaRegEdit className="text-color-text-black w-4 h-4 md:w-6 md:h-6" />
                   </Link>
                   <button

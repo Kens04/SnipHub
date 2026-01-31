@@ -32,6 +32,11 @@ export interface SnippetsData {
 
 export interface SnippetData {
   snippet: {
+    user: {
+      id: number;
+      userName: string;
+      iconUrl: string;
+    };
     tags: {
       tag: {
         id: number;
@@ -57,7 +62,18 @@ export interface SnippetData {
     }[];
     id: number;
     isPublic: boolean;
+    likes: {
+      id: number;
+      userId: number;
+      snippetId: number;
+    }[];
+    favorites: {
+      id: number;
+      userId: number;
+      snippetId: number;
+    }[];
     title: string;
+    createdAt: string;
     updatedAt: string;
   };
 }
