@@ -15,6 +15,7 @@ const Snippets: React.FC = () => {
     user && token ? `/api/user/${user.id}/snippets` : null,
     token
   );
+
   const {
     searchText,
     selectedCategory,
@@ -36,7 +37,7 @@ const Snippets: React.FC = () => {
 
   return (
     <div>
-      <SnippetTabs snippetType="all" />
+      <SnippetTabs snippetType="all" >{"スニペット一覧"}</SnippetTabs>
       <SnippetFilters
         searchText={searchText}
         selectedCategory={selectedCategory}

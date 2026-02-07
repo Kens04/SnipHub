@@ -3,12 +3,12 @@ import { FiPlus } from "react-icons/fi";
 import { SnippetTabProps } from "../_type/snippetFilters";
 import LinkMenu from "./LinkMenu";
 
-const SnippetTabs: React.FC<SnippetTabProps> = ({ snippetType }) => {
+const SnippetTabs: React.FC<SnippetTabProps> = ({ children, snippetType }) => {
   return (
     <>
       <div className="flex justify-between items-center gap-4 flex-wrap">
         <h2 className="text-left text-color-text-black text-3xl font-bold">
-          スニペット一覧
+          {children}
         </h2>
         <div>
           <Link

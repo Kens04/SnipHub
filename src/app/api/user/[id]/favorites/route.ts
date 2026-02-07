@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) => {
   try {
     const { user, error } = await getCurrentUser(request);
@@ -12,13 +12,13 @@ export const GET = async (
     if (error || !user) {
       return NextResponse.json(
         { status: error?.message || "認証が必要です" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const { id } = params;
 
-    if (user.id !== parseInt(id)) {
+    if (user.supabaseUserId !== String(id)) {
       return NextResponse.json({
         message: "他のユーザーのお気に入りは閲覧できません",
         status: 403,
@@ -26,9 +26,8 @@ export const GET = async (
     }
 
     const targetUser = await prisma.user.findUnique({
-      where: {
-        id: parseInt(id),
-      },
+      where: { id: user.id },
+      select: { supabaseUserId: true },
     });
 
     if (!targetUser) {
@@ -39,7 +38,7 @@ export const GET = async (
     }
 
     const favoriteSnippets = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { supabaseUserId: String(id) },
       select: {
         id: true,
         userName: true,
@@ -53,6 +52,7 @@ export const GET = async (
                 title: true,
                 description: true,
                 isPublic: true,
+                updatedAt: true,
                 user: {
                   select: {
                     id: true,

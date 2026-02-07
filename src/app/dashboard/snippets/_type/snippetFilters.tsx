@@ -3,6 +3,7 @@ import { MultiValue } from "react-select";
 
 export interface SnippetTabProps {
   snippetType: string;
+  children: string;
 }
 
 export interface SnippetTableProps {
@@ -12,7 +13,7 @@ export interface SnippetTableProps {
   handleToggleVisibility: (
     snippetId: number,
     title: string,
-    isVisible: boolean
+    isVisible: boolean,
   ) => Promise<void>;
   filteredSnippets: {
     tags: {
