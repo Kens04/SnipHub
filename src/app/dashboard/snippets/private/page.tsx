@@ -36,7 +36,9 @@ const SnippetsPrivate: React.FC = () => {
 
   return (
     <div>
-      <SnippetTabs snippetType="private" />
+      <SnippetTabs snippetType="private">
+        {"プライベート用一覧"}
+      </SnippetTabs>
       <SnippetFilters
         searchText={searchText}
         selectedCategory={selectedCategory}

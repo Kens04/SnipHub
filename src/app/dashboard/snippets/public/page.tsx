@@ -36,7 +36,9 @@ const SnippetsPublic: React.FC = () => {
 
   return (
     <div>
-      <SnippetTabs snippetType="public" />
+      <SnippetTabs snippetType="public">
+        {"公開用一覧"}
+      </SnippetTabs>
       <SnippetFilters
         searchText={searchText}
         selectedCategory={selectedCategory}
