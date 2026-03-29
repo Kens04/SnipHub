@@ -1,6 +1,7 @@
 import CustomSandpack from "../../new/_components/CustomSandpack";
 import { ContentBlock } from "../../new/_types/contentBlock";
 import { MarkdownEditor } from "../../new/_components/MarkdownEditor";
+import { RichTextViewer } from "../../new/_components/RichTextViewer";
 
 interface ContentBlockDisplayProps {
   contentBlocks: ContentBlock[];
@@ -18,22 +19,22 @@ export const ContentBlockDisplay: React.FC<ContentBlockDisplayProps> = ({
               <MarkdownEditor
                 value={contentBlock.content || ""}
                 onChange={() => {}}
-                disabled={false}
+                disabled={true}
+                fitContent={true}
               />
             </div>
           )}
           {contentBlock.type === "text" && (
-            <div
-              dangerouslySetInnerHTML={{ __html: contentBlock.content || "" }}
-            />
+            <RichTextViewer content={contentBlock.content || ""} />
           )}
           {contentBlock.type === "preview" && (
             <CustomSandpack
               contentCode={contentBlock.code}
               initialFiles={contentBlock.files}
               initialTemplate={contentBlock.template}
+              displayOnly={true}
               onCodeChange={() => {}}
-              disabled={false}
+              disabled={true}
             />
           )}
         </div>

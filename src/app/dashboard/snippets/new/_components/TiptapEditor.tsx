@@ -1,9 +1,12 @@
-"use client";
-
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Highlight from "@tiptap/extension-highlight";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
 import { ToolMenu } from "./ToolMenu";
-import { useState } from "react";
+import { useEffect } from "react";
 
 interface TiptapEditorProps {
   sentence: string;
@@ -11,31 +14,76 @@ interface TiptapEditorProps {
   disabled: boolean;
 }
 
-export const TiptapEditor: React.FC<TiptapEditorProps> = ({
+export const TiptapEditor:React.FC<TiptapEditorProps> = ({
   sentence,
   setSentence,
   disabled,
 }) => {
-  const [isActiveBold, setIsActiveBold] = useState(false);
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
+      Underline,
+      Highlight,
+      HorizontalRule,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+      }),
+      Placeholder.configure({
+        placeholder:
+          "見出し、本文、コード例、引用を組み合わせてわかりやすく整理できます。",
+      }),
+    ],
     content: sentence,
-    onTransaction: ({ editor }) => {
-      setIsActiveBold(editor.isActive("bold"));
-    },
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: "prose prose-base m-5 focus:outline-none",
+        class:
+          "prose prose-base max-w-none min-h-[320px] p-5 focus:outline-none",
       },
     },
   });
 
-  if (editor) {
-    editor.on("update", () => {
-      setSentence(editor.getHTML());
-    });
-  }
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    editor.setEditable(!disabled);
+  }, [disabled, editor]);
+
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    const currentHtml = editor.getHTML();
+    if (sentence !== currentHtml) {
+      editor.commands.setContent(sentence || "<p></p>");
+    }
+  }, [editor, sentence]);
+
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    const handleUpdate = () => {
+      const nextHtml = editor.getHTML();
+      setSentence(nextHtml);
+    };
+
+    editor.on("update", handleUpdate);
+
+    return () => {
+      editor.off("update", handleUpdate);
+    };
+  }, [editor, setSentence]);
 
   if (!editor) {
     return null;
@@ -43,11 +91,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
   return (
     <div className="w-full mx-auto border border-gray-300 shadow-sm bg-white">
-      <ToolMenu
-        disabled={disabled}
-        editor={editor}
-        isActiveBold={isActiveBold}
-      />
+      <ToolMenu disabled={disabled} editor={editor} />
       <div className="overflow-y-auto max-h-[70vh] bg-white">
         <EditorContent
           editor={editor}
@@ -56,4 +100,4 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
       </div>
     </div>
   );
-};
+}

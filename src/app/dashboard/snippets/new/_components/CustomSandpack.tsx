@@ -18,10 +18,11 @@ interface CustomSandpackProps {
   contentCode?: string;
   initialFiles?: Record<string, { code: string }>;
   initialTemplate?: TemplateType;
+  displayOnly?: boolean;
   onCodeChange?: (
     code: string,
     template: string,
-    files: Record<string, { code: string }>
+    files: Record<string, { code: string }>,
   ) => void;
   disabled: boolean;
 }
@@ -30,7 +31,7 @@ interface CodeWatcherProps {
   onCodeChange?: (
     code: string,
     template: string,
-    files: Record<string, { code: string }>
+    files: Record<string, { code: string }>,
   ) => void;
   template: string;
 }
@@ -160,7 +161,7 @@ const FileManager: React.FC<{
   };
 
   const userFiles = Object.keys(sandpack.files).filter(
-    (file) => !file.includes("node_modules") && !file.includes("package.json")
+    (file) => !file.includes("node_modules") && !file.includes("package.json"),
   );
 
   return (
@@ -422,6 +423,7 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
   contentCode,
   initialFiles,
   initialTemplate = "react-ts",
+  displayOnly = false,
   onCodeChange,
   disabled = false,
 }) => {
@@ -430,7 +432,7 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
   const [files, setFiles] = useState(
     !initialFiles
       ? getDefaultFiles({ template: initialTemplate, contentCode })
-      : initialFiles
+      : initialFiles,
   );
 
   const isDark = theme === "dark";
@@ -487,46 +489,46 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
   };
 
   return (
-    <div
-      className={`border rounded-lg overflow-hidden ${
-        disabled ? "opacity-60" : ""
-      }`}
-    >
-      <div
-        className={`p-2 flex gap-2 border-b ${
-          isDark ? "bg-gray-800 border-gray-700" : "bg-gray-100 border-gray-200"
-        }`}
-      >
-        <select
-          onChange={(e) => handleTemplateChange(e.target.value)}
-          value={template}
-          disabled={disabled}
-          className={`px-3 py-1 border rounded ${
+    <div className="border rounded-lg overflow-hidden">
+      {!displayOnly && (
+        <div
+          className={`p-2 flex gap-2 border-b ${
             isDark
-              ? "bg-gray-700 border-gray-600 text-white"
-              : "bg-white border-gray-300 text-gray-900"
-          } ${disabled ? "cursor-not-allowed" : ""}`}
+              ? "bg-gray-800 border-gray-700"
+              : "bg-gray-100 border-gray-200"
+          }`}
         >
-          <option value="react-ts">React + TypeScript</option>
-          <option value="react">React</option>
-          <option value="vanilla">JavaScript</option>
-          <option value="static">HTML</option>
-        </select>
+          <select
+            onChange={(e) => handleTemplateChange(e.target.value)}
+            value={template}
+            disabled={disabled}
+            className={`px-3 py-1 border rounded ${
+              isDark
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            } ${disabled ? "cursor-not-allowed" : ""}`}
+          >
+            <option value="react-ts">React + TypeScript</option>
+            <option value="react">React</option>
+            <option value="vanilla">JavaScript</option>
+            <option value="static">HTML</option>
+          </select>
 
-        <select
-          onChange={(e) => handleThemeChange(e.target.value)}
-          value={theme}
-          disabled={disabled}
-          className={`px-3 py-1 border rounded ${
-            isDark
-              ? "bg-gray-700 border-gray-600 text-white"
-              : "bg-white border-gray-300 text-gray-900"
-          } ${disabled ? "cursor-not-allowed" : ""}`}
-        >
-          <option value="light">ライトモード</option>
-          <option value="dark">ダークモード</option>
-        </select>
-      </div>
+          <select
+            onChange={(e) => handleThemeChange(e.target.value)}
+            value={theme}
+            disabled={disabled}
+            className={`px-3 py-1 border rounded ${
+              isDark
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            } ${disabled ? "cursor-not-allowed" : ""}`}
+          >
+            <option value="light">ライトモード</option>
+            <option value="dark">ダークモード</option>
+          </select>
+        </div>
+      )}
 
       <SandpackProvider
         key={template}
@@ -538,15 +540,23 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
         template={template}
         theme={theme}
       >
-        <FileOperations
-          template={template}
-          theme={theme}
-          disabled={disabled}
-          onFilesChange={handleFilesChange}
-        />
+        {!displayOnly && (
+          <FileOperations
+            template={template}
+            theme={theme}
+            disabled={disabled}
+            onFilesChange={handleFilesChange}
+          />
+        )}
         <SandpackLayout>
           <SandpackFileExplorer
-            className={disabled ? "pointer-events-none" : ""}
+            className={
+              displayOnly
+                ? "!h-[200px] md:!h-[420px] overflow-y-auto border-b md:border-b-0 md:border-r"
+                : disabled
+                  ? "pointer-events-none"
+                  : ""
+            }
           />
           <SandpackCodeEditor
             showTabs
@@ -554,11 +564,18 @@ const CustomSandpack: React.FC<CustomSandpackProps> = ({
             showInlineErrors
             wrapContent
             closableTabs
-            readOnly={disabled}
+            readOnly={disabled || displayOnly}
+            className={
+              displayOnly ? "overflow-auto !h-[320px] md:!h-[420px]" : ""
+            }
           />
-          <SandpackPreview className="!h-auto" />
+          <SandpackPreview
+            className={
+              displayOnly ? `!h-[320px] md:!h-[420px] overflow-auto` : "!h-auto"
+            }
+          />
         </SandpackLayout>
-        {onCodeChange && !disabled && (
+        {onCodeChange && !disabled && !displayOnly && (
           <CodeWatcher onCodeChange={onCodeChange} template={template} />
         )}
       </SandpackProvider>
