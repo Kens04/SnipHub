@@ -18,8 +18,13 @@ export interface SnippetsData {
       order: number;
       preview?: {
         template?: string;
-        code: string;
-        files?: Record<string, { code: string }>;
+        code?: string;
+        files?:
+          | Record<string, { code: string }>
+          | {
+              filePath: string;
+              code: string;
+            }[];
       };
       type: "markdown" | "text" | "preview";
     }[];
@@ -55,8 +60,13 @@ export interface SnippetData {
       order: number;
       preview?: {
         template?: string;
-        code: string;
-        files?: Record<string, { code: string }>;
+        code?: string;
+        files?:
+          | Record<string, { code: string }>
+          | {
+              filePath: string;
+              code: string;
+            }[];
       };
       type: "markdown" | "text" | "preview";
     }[];

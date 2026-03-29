@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     if (error || !user) {
       return NextResponse.json(
         { status: error?.message || "認証が必要です" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
                         ([filePath, file]) => ({
                           filePath: filePath,
                           code: file.code,
-                        })
+                        }),
                       ),
                     },
                   },
@@ -133,17 +133,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export const GET = async (request: NextRequest) => {
+export const GET = async () => {
   try {
-    const { user, error } = await getCurrentUser(request);
-
-    if (error || !user) {
-      return NextResponse.json(
-        { status: error?.message || "認証が必要です" },
-        { status: 401 }
-      );
-    }
     const snippet = await prisma.snippet.findMany({
+      where: { isPublic: true },
       include: {
         user: {
           select: {
@@ -170,6 +163,7 @@ export const GET = async (request: NextRequest) => {
         },
         likes: {
           select: {
+            userId: true,
             snippetId: true,
           },
         },
