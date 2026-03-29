@@ -11,6 +11,7 @@ export async function GET(
     const user = await prisma.user.findUnique({
       where: { supabaseUserId: id },
       select: {
+        id: true,
         userName: true,
         iconUrl: true,
         supabaseUserId: true,
@@ -26,6 +27,7 @@ export async function GET(
 
     return NextResponse.json({
       status: "OK",
+      id: user.id,
       userName: user.userName,
       iconUrl: user.iconUrl,
     });

@@ -34,14 +34,7 @@ export const GET = async (
   { params }: { params: { id: string } }
 ) => {
   try {
-    const { user, error } = await getCurrentUser(request);
-
-    if (error || !user) {
-      return NextResponse.json(
-        { status: error?.message || "認証が必要です" },
-        { status: 401 }
-      );
-    }
+    const { user } = await getCurrentUser(request);
 
     const { id } = params;
     const snippet = await prisma.snippet.findUnique({
@@ -122,6 +115,22 @@ export const GET = async (
         },
       },
     });
+
+    if (!snippet) {
+      return NextResponse.json(
+        { status: "スニペットが見つかりません" },
+        { status: 404 },
+      );
+    }
+
+    const canView = snippet.isPublic || (user && snippet.userId === user.id);
+
+    if (!canView) {
+      return NextResponse.json(
+        { status: "スニペットが見つかりません" },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json({ status: "OK", snippet }, { status: 200 });
   } catch (error) {

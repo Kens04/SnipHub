@@ -36,6 +36,7 @@ export interface SnippetsData {
 }
 
 export interface SnippetData {
+  currentUserId?: number | null;
   snippet: {
     user: {
       id: number;

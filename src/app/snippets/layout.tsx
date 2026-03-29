@@ -6,7 +6,7 @@ export default function SnippetLayout({
   return (
     <>
       {/* メインエリア */}
-      <div className="p-4 md:ml-[280px] md:mt-[88px] md:px-8 md:py-20 min-h-screen">
+      <div className="p-4 pb-10 md:mt-[88px] md:px-8 md:py-20 min-h-screen">
         {children}
       </div>
     </>
