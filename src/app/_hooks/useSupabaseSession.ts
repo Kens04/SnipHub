@@ -10,17 +10,31 @@ export const useSupabaseSession = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetcher = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const syncSession = (session: Session | null) => {
       setSession(session);
       setToken(session?.access_token || null);
       setUser(session?.user || null);
       setIsLoading(false);
     };
 
+    const fetcher = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      syncSession(session);
+    };
+
     fetcher();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { session, isLoading, token, user };

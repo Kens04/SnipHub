@@ -15,7 +15,7 @@ import { RxHamburgerMenu } from "react-icons/rx";
 
 export const Header: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
-  const { token, session } = useSupabaseSession();
+  const { token, session, isLoading: isSessionLoading } = useSupabaseSession();
   const { data, error, isLoading } = useDataFetch<User>(
     session?.user.id ? `/api/user/${session?.user.id}` : null
   );
@@ -34,7 +34,12 @@ export const Header: React.FC = () => {
         <span className="text-2xl md:text-3xl">SnipHub</span>
       </Link>
       <div>
-        {token ? (
+        {isSessionLoading ? (
+          <div className="flex gap-2 md:gap-4 items-center justify-center">
+            <div className="h-10 w-20 animate-pulse rounded-md bg-gray-200" />
+            <div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
+          </div>
+        ) : token ? (
           <div className="flex gap-4 items-center justify-center w-[40px] h-[40px] md:w-[50px] md:h-[50px]">
             <div className="relative group">
               <button className="hidden md:block" type="button">
