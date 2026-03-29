@@ -1,6 +1,6 @@
 "use client";
 
-import { Sidebar } from "../_layout/Sidebar";
+import { DashboardSidebar } from "../_layout/DashboardSidebar";
 import { useRouteGuard } from "./_hooks/useRouteGuard";
 
 export default function DashboardLayout({
@@ -13,7 +13,7 @@ export default function DashboardLayout({
   return (
     <>
       {/* サイドバー */}
-      <Sidebar />
+      <DashboardSidebar />
 
       {/* メインエリア */}
       <div className="mt-[72px] md:ml-[280px] md:mt-[88px] p-4 md:px-8 md:py-20 min-h-screen">

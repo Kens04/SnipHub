@@ -1,55 +1,121 @@
-import Link from "next/link";
-import { SidebarItems } from "../_components/SidebarItems";
-import { useSupabaseSession } from "../_hooks/useSupabaseSession";
-import { useDataFetch } from "../_hooks/useDataFetch";
-import { User } from "../_types/user";
-import avatar from "../public/images/avatar.png";
-import Image from "next/image";
+"use client";
 
-export const Sidebar: React.FC = () => {
-  const { token, session } = useSupabaseSession();
-  const { data, error, isLoading } = useDataFetch<User>(
-    session?.user.id ? `/api/user/${session?.user.id}` : null
-  );
-  if (error) return <div>ユーザー情報の読み込みに失敗しました</div>;
+import Select, { MultiValue } from "react-select";
+
+type Option = { value: string; label: string };
+
+interface SidebarProps {
+  mode?: "desktop" | "mobile";
+  searchText?: string;
+  selectedSort?: Option | null;
+  selectedCategory?: Option | null;
+  selectedTags?: MultiValue<Option>;
+  selectedDate?: string;
+  tagKeyword?: string;
+  sortOptions?: Option[];
+  categoryOptions?: Option[];
+  filteredTagOptions?: Option[];
+  setSearchText: (v: string) => void;
+  setSelectedSort: (v: Option | null) => void;
+  setSelectedCategory: (v: Option | null) => void;
+  setSelectedTags: (v: MultiValue<Option>) => void;
+  setSelectedDate: (v: string) => void;
+  setTagKeyword: (v: string) => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  mode = "desktop",
+  searchText,
+  selectedSort,
+  selectedCategory,
+  selectedTags,
+  selectedDate,
+  sortOptions,
+  categoryOptions,
+  filteredTagOptions,
+  setSearchText,
+  setSelectedSort,
+  setSelectedCategory,
+  setSelectedTags,
+  setSelectedDate,
+}) => {
+
+  console.log("テキスト", searchText);
+  const isMobile = mode === "mobile";
+
   return (
-    <aside className="hidden md:block bg-white w-[280px] left-0 bottom-0 top-0 min-h-screen absolute">
-      {token && (
-        <div className="flex items-center gap-4 p-4 border-t">
-          {isLoading ? (
-            <Image
-              className="w-[40px] h-[40px] rounded-full"
-              src={avatar}
-              width={40}
-              height={40}
-              alt="avatar"
-            />
-          ) : (
-            <>
-              <Image
-                className="w-[40px] h-[40px] rounded-full"
-                src={data?.iconUrl || avatar}
-                width={40}
-                height={40}
-                alt="avatar"
-              />
-              <span>{data?.userName}</span>
-            </>
-          )}
+    <aside
+      className={
+        isMobile
+          ? "block w-full bg-white border border-color-border rounded-lg"
+          : "hidden md:block bg-white w-[280px] left-0 top-0 min-h-screen absolute border-r border-color-border"
+      }
+    >
+      <div className={isMobile ? "px-4 py-4" : "mt-[88px] px-4 md:px-6 pb-8"}>
+        <input
+          className="w-full h-10 px-4 rounded border border-color-border text-sm placeholder:text-color-text-gray"
+          type="text"
+          placeholder="スニペット検索..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold text-color-text-black">
+            並び替え
+          </h3>
+          <Select
+            className="mt-3"
+            classNamePrefix="select"
+            options={sortOptions}
+            value={selectedSort}
+            onChange={(option) => setSelectedSort(option)}
+            components={{ IndicatorSeparator: () => null }}
+          />
         </div>
-      )}
-      {SidebarItems.map((SidebarItem) => {
-        return (
-          <Link
-            key={SidebarItem.id}
-            href={SidebarItem.href}
-            className="p-4 flex gap-2 items-center hover:bg-gray-100 border-t"
-          >
-            {SidebarItem.icon}
-            {SidebarItem.link}
-          </Link>
-        );
-      })}
+
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold text-color-text-black">
+            カテゴリ
+          </h3>
+          <Select
+            className="mt-3"
+            classNamePrefix="select"
+            options={categoryOptions}
+            isClearable
+            value={selectedCategory}
+            onChange={(option) => setSelectedCategory(option)}
+            components={{ IndicatorSeparator: () => null }}
+            placeholder="カテゴリを選んでください"
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold text-color-text-black">タグ</h3>
+          <Select
+            className="mt-3"
+            classNamePrefix="select"
+            options={filteredTagOptions}
+            isMulti
+            value={selectedTags}
+            onChange={(options) => setSelectedTags(options)}
+            components={{ IndicatorSeparator: () => null }}
+            placeholder="タグを選んでください"
+          />
+        </div>
+
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold text-color-text-black">
+            更新日
+          </h3>
+          <input
+            className="mt-3 w-full h-10 px-4 rounded border border-color-border text-sm"
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </div>
+      </div>
     </aside>
   );
 };

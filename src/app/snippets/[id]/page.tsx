@@ -1,23 +1,33 @@
 "use client";
 
-import { useAuthDataFetch } from "@/app/_hooks/useAuthDataFetch";
+import { useDataFetch } from "@/app/_hooks/useDataFetch";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { SnippetData } from "@/app/_types/snippet";
-import { ContentBlock } from "../new/_types/contentBlock";
+import { ContentBlock } from "@/app/dashboard/snippets/new/_types/contentBlock";
 import { FaRegStar } from "react-icons/fa6";
 import { FaStar } from "react-icons/fa";
 import { FaRegHeart } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa";
-import { LuEye, LuEyeClosed } from "react-icons/lu";
+import { FaXTwitter } from "react-icons/fa6";
+import { FaThreads } from "react-icons/fa6";
+import { ContentBlockDisplay } from "@/app/dashboard/snippets/[id]/_components/ContentBlockDisplay";
 import toast from "react-hot-toast";
-import { ContentBlockDisplay } from "./_components/ContentBlockDisplay";
+import Link from "next/link";
+
+interface CurrentUserSummary {
+  id: number;
+  userName: string;
+  iconUrl: string;
+}
 
 type PreviewFiles = NonNullable<
-  NonNullable<SnippetData["snippet"]["contentBlocks"][number]["preview"]>["files"]
+  NonNullable<
+    SnippetData["snippet"]["contentBlocks"][number]["preview"]
+  >["files"]
 >;
 
 const normalizePreviewFiles = (
-  files?: PreviewFiles
+  files?: PreviewFiles,
 ): Record<string, { code: string }> => {
   if (!files) {
     return {};
@@ -35,50 +45,21 @@ const normalizePreviewFiles = (
 
 const SnippetDetail = ({ params }: { params: { id: string } }) => {
   const { token, user } = useSupabaseSession();
-  const { data, isLoading, mutate } = useAuthDataFetch<SnippetData>(
-    user ? `/api/snippet/${params.id}` : null,
-    token
+  const { data, isLoading, mutate } = useDataFetch<SnippetData>(
+    `/api/snippet/${params.id}`,
+  );
+  const { data: currentUser } = useDataFetch<CurrentUserSummary>(
+    user?.id ? `/api/user/${user.id}` : null,
   );
 
-  const handleToggleVisibility = async (
-    snippetId: number,
-    title: string,
-    isVisible: boolean
-  ) => {
-    try {
-      toast.loading(
-        `「${title}」のスニペットを${!isVisible ? "公開" : "非公開"}中です・・・`
-      );
-
-      const res = await fetch(`/api/snippet/${snippetId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          isPublic: !isVisible,
-        }),
-      });
-
-      toast.remove();
-
-      if (res.ok) {
-        toast.success(
-          `「${title}」のスニペットを${!isVisible ? "公開" : "非公開"}にしました`
-        );
-        mutate();
-      } else {
-        toast.error(
-          `「${title}」のスニペットを${!isVisible ? "公開" : "非公開"}に失敗しました`
-        );
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const currentUserId = currentUser?.id;
 
   const handleFavorite = async (snippetId: number, isFavorited: boolean) => {
+    if (!token || !currentUserId) {
+      toast.error("ログインしてください");
+      return;
+    }
+
     try {
       if (isFavorited) {
         const res = await fetch(`/api/favorite/${snippetId}`, {
@@ -115,6 +96,11 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
   };
 
   const handleLike = async (snippetId: number, isLiked: boolean) => {
+    if (!token || !currentUserId) {
+      toast.error("ログインしてください");
+      return;
+    }
+
     try {
       if (isLiked) {
         const res = await fetch(`/api/like/${snippetId}`, {
@@ -161,13 +147,14 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
   const snippet = data.snippet;
 
   // 現在のユーザーがお気に入りに追加しているかチェック
-  const isFavorited = snippet.favorites.some(
-    (favorite) => favorite.userId === snippet.user.id
-  );
+  const isFavorited = currentUserId
+    ? snippet.favorites.some((favorite) => favorite.userId === currentUserId)
+    : false;
 
-  const isLiked = snippet.likes.some((like) => like.userId === snippet.user.id);
+  const isLiked = currentUserId
+    ? snippet.likes.some((like) => like.userId === currentUserId)
+    : false;
 
-  // contentBlocksをorder順にソート
   const sortedContentBlocks: ContentBlock[] = [...snippet.contentBlocks]
     .sort((a, b) => a.order - b.order)
     .map((block) => ({
@@ -183,7 +170,7 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
     }));
 
   return (
-    <div>
+    <div className="mt-20 md:mt-0">
       <h2 className="text-left text-color-text-black text-2xl md:text-3xl font-bold">
         {snippet.title}
       </h2>
@@ -222,13 +209,9 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
       <div className="flex items-center gap-4 flex-wrap mt-5">
         <div>
           <button
+            type="button"
             onClick={() =>
-              handleFavorite(
-                snippet.id,
-                snippet.favorites.some(
-                  (favorite) => favorite.userId === snippet.user.id
-                )
-              )
+              handleFavorite(snippet.id, isFavorited)
             }
           >
             {isFavorited ? (
@@ -246,11 +229,9 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
         </div>
         <div>
           <button
+            type="button"
             onClick={() =>
-              handleLike(
-                snippet.id,
-                snippet.likes.some((like) => like.userId === snippet.user.id)
-              )
+              handleLike(snippet.id, isLiked)
             }
           >
             {isLiked ? (
@@ -266,42 +247,34 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
             )}
           </button>
         </div>
-        <div className="flex items-center">
-          {snippet.isPublic ? (
-            <button
-              className="cursor-pointer"
-              type="button"
-              onClick={() =>
-                handleToggleVisibility(
-                  snippet.id,
-                  snippet.title,
-                  snippet.isPublic
-                )
-              }
-            >
-              <div className="flex items-center gap-2">
-                <LuEye className="text-color-text-black w-4 h-4 md:w-6 md:h-6" />
-                <span>公開中</span>
-              </div>
-            </button>
-          ) : (
-            <button
-              className="cursor-pointer"
-              type="button"
-              onClick={() =>
-                handleToggleVisibility(
-                  snippet.id,
-                  snippet.title,
-                  snippet.isPublic
-                )
-              }
-            >
-              <div className="flex items-center gap-2">
-                <LuEyeClosed className="text-color-text-black w-4 h-4 md:w-6 md:h-6" />
-                <span className="text-sm">非公開中</span>
-              </div>
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm">シェア：</span>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `https://x.com/intent/tweet?text=${encodeURIComponent(
+                `${snippet.title}\n${window.location.href}`,
+              )}`;
+              window.open(url, "_blank", "noopener,noreferrer");
+            }}
+            className="hover:opacity-70 transition-opacity"
+            aria-label="Xでシェア"
+          >
+            <FaXTwitter className="text-color-text-black w-4 h-4 md:w-6 md:h-6" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `https://threads.com/intent/post?text=${encodeURIComponent(
+                `${snippet.title} ${window.location.href}`,
+              )}`;
+              window.open(url, "_blank", "noopener,noreferrer");
+            }}
+            className="hover:opacity-70 transition-opacity"
+            aria-label="Threadsでシェア"
+          >
+            <FaThreads className="text-color-text-black w-4 h-4 md:w-6 md:h-6" />
+          </button>
         </div>
       </div>
       <div className="mt-8">
@@ -311,6 +284,14 @@ const SnippetDetail = ({ params }: { params: { id: string } }) => {
       <div className="mt-8">
         <div className="text-xl font-bold mb-2">コンテンツ</div>
         <ContentBlockDisplay contentBlocks={sortedContentBlocks} />
+      </div>
+      <div className="flex items-center justify-center mt-10">
+      <Link
+        href="/snippets/"
+        className="text-white bg-color-primary hover:bg-color-primary-hover font-bold rounded-md md:rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 text-center flex gap-2 w-full items-center justify-center md:max-w-60 md:min-w-60"
+      >
+        一覧へ戻る
+      </Link>
       </div>
     </div>
   );
